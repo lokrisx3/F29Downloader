@@ -8,6 +8,9 @@ namespace F29Downloader
     {
         private string rutaExcel = "";
 
+        private const string UrlPdfF29Prueba =
+            "https://www4.sii.cl/rfiInternet/formCompacto?folio=9071226716&rut=76869422&form=029&codInt=872677028";
+
         public Form1()
         {
             InitializeComponent();
@@ -89,48 +92,31 @@ namespace F29Downloader
                 txtLog.AppendText(
                     "✓ Inicio de sesión exitoso.\r\n");
 
-                await sii.IrAConsultaF29(pagina);
-
-                await sii.SeleccionarFormulario29(pagina);
-
-                await sii.SeleccionarMes(
-                    pagina,
-                    "Mayo");
-
-                await sii.BuscarDatosIngresados(pagina);
-
-                await sii.AbrirFormulario(pagina);
-
-                // Esperar el popup antes del clic
-                Task<IPage> popupTask =
-                    pagina.WaitForPopupAsync();
-
-                // Abrir Formulario Compacto
-                await sii.SeleccionarFormularioCompacto(
-                    pagina);
-
-                // Obtener la pestaña del PDF
-                IPage paginaPdf =
-                    await sii.AbrirPdf(
-                        popupTask);
                 IBrowserContext contexto =
-                        sii.ObtenerContexto();
-
+                    sii.ObtenerContexto();
 
                 // Servicio encargado del PDF
                 PdfService pdf =
                     new PdfService();
 
+                string rutaPdf =
+                    Path.Combine(
+                        AppContext.BaseDirectory,
+                        "Downloads",
+                        "F29_9071226716.pdf");
+
                 bool guardado =
-                await pdf.GuardarPdf(
-                    contexto,
-                    paginaPdf,
-                    @"C:\Temp\F29.pdf");
+                    await pdf.GuardarPdfDesdeUrl(
+                        contexto,
+                        UrlPdfF29Prueba,
+                        rutaPdf);
 
                 if (guardado)
                 {
                     txtLog.AppendText(
-                        "PDF guardado correctamente.\r\n");
+                        "PDF guardado correctamente: " +
+                        rutaPdf +
+                        "\r\n");
                 }
                 else
                 {
@@ -143,6 +129,11 @@ namespace F29Downloader
                 txtLog.AppendText(
                     "✗ Error al iniciar sesión.\r\n");
             }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

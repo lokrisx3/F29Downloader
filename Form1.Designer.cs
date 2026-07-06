@@ -42,6 +42,8 @@
             lblEstadoNavegador = new Label();
             label2 = new Label();
             label3 = new Label();
+            label4 = new Label();
+            textBox1 = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvContribuyentes).BeginInit();
             SuspendLayout();
             // 
@@ -64,7 +66,7 @@
             dgvContribuyentes.MultiSelect = false;
             dgvContribuyentes.Name = "dgvContribuyentes";
             dgvContribuyentes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContribuyentes.Size = new Size(400, 150);
+            dgvContribuyentes.Size = new Size(468, 150);
             dgvContribuyentes.TabIndex = 3;
             // 
             // btnIniciarProceso
@@ -83,7 +85,7 @@
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Both;
-            txtLog.Size = new Size(400, 150);
+            txtLog.Size = new Size(468, 150);
             txtLog.TabIndex = 6;
             txtLog.WordWrap = false;
             // 
@@ -136,7 +138,7 @@
             // chkHeadless
             // 
             chkHeadless.AutoSize = true;
-            chkHeadless.Location = new Point(118, 247);
+            chkHeadless.Location = new Point(316, 246);
             chkHeadless.Name = "chkHeadless";
             chkHeadless.Size = new Size(164, 19);
             chkHeadless.TabIndex = 12;
@@ -155,7 +157,7 @@
             // lblEstadoNavegador
             // 
             lblEstadoNavegador.AutoSize = true;
-            lblEstadoNavegador.Location = new Point(277, 298);
+            lblEstadoNavegador.Location = new Point(350, 298);
             lblEstadoNavegador.Name = "lblEstadoNavegador";
             lblEstadoNavegador.Size = new Size(130, 15);
             lblEstadoNavegador.TabIndex = 14;
@@ -178,11 +180,31 @@
             label3.TabIndex = 16;
             label3.Text = "0/0 (0%)";
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(146, 247);
+            label4.Name = "label4";
+            label4.Size = new Size(164, 15);
+            label4.TabIndex = 17;
+            label4.Text = "Tiempo de espera por Usuario";
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(120, 243);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(26, 23);
+            textBox1.TabIndex = 18;
+            textBox1.Text = "30";
+            textBox1.TextChanged += textBox1_TextChanged;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(419, 481);
+            ClientSize = new Size(492, 481);
+            Controls.Add(textBox1);
+            Controls.Add(label4);
             Controls.Add(label3);
             Controls.Add(label2);
             Controls.Add(lblEstadoNavegador);
@@ -198,7 +220,7 @@
             Controls.Add(dgvContribuyentes);
             Controls.Add(lblArchivo);
             Name = "Form1";
-            Text = "F29 Downloader";
+            Text = "s";
             ((System.ComponentModel.ISupportInitialize)dgvContribuyentes).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -219,5 +241,7 @@
         private Label lblEstadoNavegador;
         private Label label2;
         private Label label3;
+        private Label label4;
+        private TextBox textBox1;
     }
 }

@@ -116,7 +116,7 @@ Restore NuGet Packages
 Después de restaurar los paquetes ejecutar:
 
 ```bash
-pwsh bin/Debug/net8.0/playwright.ps1 install
+pwsh bin/Debug/net8.0-windows/playwright.ps1 install
 ```
 
 Si está compilado en Release:

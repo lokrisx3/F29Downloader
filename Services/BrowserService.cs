@@ -12,6 +12,13 @@ namespace F29Downloader.Services
 
         public async Task<IPage> CrearPagina(bool headless)
         {
+            string carpetaDescargas =
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Downloads");
+
+            Directory.CreateDirectory(carpetaDescargas);
+
             playwright =
                 await Playwright.CreateAsync();
 
@@ -19,12 +26,17 @@ namespace F29Downloader.Services
                 await playwright.Chromium.LaunchAsync(
                     new BrowserTypeLaunchOptions
                     {
-                        Headless = headless
+                        Headless = headless,
+                        DownloadsPath = carpetaDescargas
                     });
 
             // Crear un contexto propio
             context =
-                await browser.NewContextAsync();
+                await browser.NewContextAsync(
+                    new BrowserNewContextOptions
+                    {
+                        AcceptDownloads = true
+                    });
 
             IPage pagina =
                 await context.NewPageAsync();
