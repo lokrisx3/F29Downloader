@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using F29Downloader.Models;
-using Microsoft.Playwright;
+﻿using Microsoft.Playwright;
 
 namespace F29Downloader.Services
 {
@@ -15,6 +9,8 @@ namespace F29Downloader.Services
         private const string URL_LOGIN =
             "https://zeusr.sii.cl//AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi";
 
+        private const string URL_LOGOUT =
+                "https://zeusr.sii.cl/cgi_AUT2000/autTermino.cgi";
         public SiiService()
         {
             browserService = new BrowserService();
@@ -35,6 +31,18 @@ namespace F29Downloader.Services
             return pagina;
         }
 
+        public async Task CerrarSesion(IPage pagina)
+        {
+            await pagina.GotoAsync(
+                URL_LOGOUT,
+                new PageGotoOptions
+                {
+                    WaitUntil = WaitUntilState.NetworkIdle,
+                    Timeout = 30000
+                });
+
+            await pagina.WaitForTimeoutAsync(1000);
+        }
         public async Task IrAConsultaF29(IPage pagina)
         {
             await pagina.GotoAsync(
@@ -145,5 +153,15 @@ namespace F29Downloader.Services
         {
             return browserService.ObtenerContexto();
         }
+
+        public async Task CerrarPopup(
+            IPage paginaPdf)
+        {
+            if (!paginaPdf.IsClosed)
+            {
+                await paginaPdf.CloseAsync();
+            }
+        }
+
     }
 }

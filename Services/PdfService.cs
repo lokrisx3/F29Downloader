@@ -1,11 +1,11 @@
 ﻿using Microsoft.Playwright;
-using System.IO;
 using System.Text;
 
 namespace F29Downloader.Services
 {
     internal class PdfService
     {
+        public string UltimoMensaje { get; private set; } = "";
         public async Task VerificarPdf(IPage paginaPdf)
         {
             IResponse? respuesta =
@@ -25,9 +25,6 @@ namespace F29Downloader.Services
                 Encoding.ASCII.GetString(
                     bytes.Take(10).ToArray());
 
-            MessageBox.Show(
-                $"Primeros bytes:\n\n{encabezado}\n\n" +
-                $"Tamaño: {bytes.Length} bytes");
         }
         public async Task<bool> GuardarPdf(
             IBrowserContext contexto,
@@ -140,8 +137,6 @@ namespace F29Downloader.Services
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
-
                 return false;
             }
         }
@@ -179,9 +174,6 @@ namespace F29Downloader.Services
             await File.WriteAllBytesAsync(
                 rutaDestino,
                 contenido);
-
-            MessageBox.Show(
-                $"PDF guardado correctamente.\n\n{rutaDestino}");
         }
 
         private bool EsPdf(byte[] contenido)
@@ -252,26 +244,23 @@ namespace F29Downloader.Services
 
                 if (encabezadoArchivo != "%PDF-")
                 {
-                    MessageBox.Show(
-                        "La descarga se guardó, pero no parece ser un PDF válido.\n\n" +
-                        $"HTTP original: {statusRespuestaOriginal}\n" +
-                        $"Primeros bytes respuesta original: {encabezadoRespuestaOriginal}\n" +
-                        $"Primeros bytes archivo guardado: {encabezadoArchivo}");
+                    UltimoMensaje =
+                        "La descarga se guardó, pero no parece ser un PDF válido.\r\n" +
+                        $"HTTP original: {statusRespuestaOriginal}\r\n" +
+                        $"Primeros bytes respuesta original: {encabezadoRespuestaOriginal}\r\n" +
+                        $"Primeros bytes archivo guardado: {encabezadoArchivo}";
 
                     return false;
                 }
-
-                MessageBox.Show(
-                    $"PDF guardado correctamente.\n\n{rutaDestino}");
 
                 return true;
             }
             catch (TimeoutException)
             {
-                MessageBox.Show(
-                    "No se detectó una descarga desde el visor PDF de Chromium.\n\n" +
-                    $"HTTP original: {statusRespuestaOriginal}\n" +
-                    $"Primeros bytes respuesta original: {encabezadoRespuestaOriginal}");
+                UltimoMensaje =
+                    "No se detectó una descarga desde el visor PDF de Chromium.\r\n" +
+                    $"HTTP original: {statusRespuestaOriginal}\r\n" +
+                    $"Primeros bytes respuesta original: {encabezadoRespuestaOriginal}";
 
                 return false;
             }

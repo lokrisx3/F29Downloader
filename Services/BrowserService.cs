@@ -74,7 +74,7 @@ namespace F29Downloader.Services
 
             return context;
         }
-
+        
         public async Task Cerrar()
         {
             if (context != null)

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿
 
 namespace F29Downloader.Services
 {
@@ -39,6 +34,18 @@ namespace F29Downloader.Services
             Directory.CreateDirectory(DownloadsPath);
 
             Directory.CreateDirectory(LogsPath);
+        }
+
+        public static string ObtenerNombrePdf(
+                Models.Contribuyente contribuyente)
+        {
+            string periodo =
+                contribuyente.Periodo
+                    .Replace("/", "_")
+                    .Replace("-", "_");
+
+            return
+                $"F29_{contribuyente.Rut}_{periodo}.pdf";
         }
     }
 }
