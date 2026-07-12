@@ -279,6 +279,8 @@ Al abrir el proyecto por primera vez:
 
 Procesar automáticamente todos los contribuyentes.
 
+
+
 ---
 
 ## Baja prioridad
@@ -315,3 +317,12 @@ Este procedimiento aún está pendiente de implementación.
 Cristian Fritz
 
 Proyecto personal de automatización para descarga masiva de Formularios 29.
+
+
+13 - Botón Forzar Cierre configurado y manejo de excepciones al cerrar. Listo. 
+14 - Pasar ProcesarContribuyente a otro archivo y configurar llamados del metodo- 
+15 - Probar Excel con contribuyente duplicado y definir comportamiento. 
+16 - Tiempo de espera entre contribuyentes. 17 - Barra de progreso real del proceso masivo. 
+18 - Manejo completo de errores, reintentos y páginas no disponibles. 
+19 - Ejecución con navegador oculto y estado del navegador. 
+20 - Refactorización general.

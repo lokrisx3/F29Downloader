@@ -13,7 +13,7 @@ namespace F29Downloader.Models
         public string Clave { get; set; } = "";
 
         public string Periodo { get; set; } = "";
-
+        
         public string Estado { get; set; } = "Pendiente";
 
         public string Mensaje { get; set; } = "";

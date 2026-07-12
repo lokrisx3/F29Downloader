@@ -222,7 +222,7 @@ namespace F29Downloader
                 new Models.Contribuyente
                 {
                     Rut = "76869422-2",
-                    Clave = "PATRICIO2018",
+                    Clave = "Patricio2026@",
                     Periodo = "05/2025"
                 };
 
