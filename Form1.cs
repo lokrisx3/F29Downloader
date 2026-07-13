@@ -238,5 +238,59 @@ namespace F29Downloader
                 EscribirLog);
         }
 
+        private async void btnIniciarProceso_Click(
+    object sender,
+    EventArgs e)
+        {
+            DatabaseService db =
+                new DatabaseService();
+
+            List<Models.Contribuyente> lista =
+                db.ObtenerContribuyentes();
+
+            if (lista.Count == 0)
+            {
+                MessageBox.Show(
+                    "No existen contribuyentes cargados.");
+
+                return;
+            }
+
+            int segundosEspera = 0;
+
+            if (!int.TryParse(textBox1.Text, out segundosEspera))
+            {
+                MessageBox.Show(
+                    "Ingrese un tiempo de espera válido.");
+
+                textBox1.Focus();
+
+                return;
+            }
+
+            DownloadService download =
+                new DownloadService();
+
+            for (int i = 0; i < lista.Count; i++)
+            {
+                await download.ProcesarContribuyente(
+                    lista[i],
+                    chkHeadless.Checked,
+                    EscribirLog);
+
+                if (i < lista.Count - 1 &&
+                    segundosEspera > 0)
+                {
+                    EscribirLog(
+                        $"Esperando {segundosEspera} segundos...\r\n");
+
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(segundosEspera));
+                }
+            }
+
+            EscribirLog(
+                "\r\nProceso finalizado.\r\n");
+        }
     }
 }

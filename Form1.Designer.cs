@@ -77,6 +77,7 @@
             btnIniciarProceso.TabIndex = 4;
             btnIniciarProceso.Text = "Iniciar Descarga";
             btnIniciarProceso.UseVisualStyleBackColor = true;
+            btnIniciarProceso.Click += btnIniciarProceso_Click;
             // 
             // txtLog
             // 
