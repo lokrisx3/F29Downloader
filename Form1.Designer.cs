@@ -198,7 +198,6 @@
             textBox1.TabIndex = 18;
             textBox1.Text = "30";
             textBox1.TextAlign = HorizontalAlignment.Right;
-            textBox1.TextChanged += textBox1_TextChanged;
             // 
             // Form1
             // 
