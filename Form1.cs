@@ -8,7 +8,7 @@ namespace F29Downloader
     {
         private string rutaExcel = "";
 
-     
+
         public Form1()
         {
             InitializeComponent();
@@ -213,10 +213,13 @@ namespace F29Downloader
             txtLog.AppendText(
                 $"Se cargaron {lista.Count} registros.\r\n");
         }
-
+        private void EscribirLog(string mensaje)
+        {
+            txtLog.AppendText(mensaje);
+        }
         private async void btnProbarNavegador_Click(
-            object sender,
-            EventArgs e)
+    object sender,
+    EventArgs e)
         {
             Models.Contribuyente contribuyente =
                 new Models.Contribuyente
@@ -226,9 +229,13 @@ namespace F29Downloader
                     Periodo = "05/2025"
                 };
 
+            DownloadService download =
+                new DownloadService();
 
-            await ProcesarContribuyente(
-                contribuyente);
+            await download.ProcesarContribuyente(
+                contribuyente,
+                chkHeadless.Checked,
+                EscribirLog);
         }
 
     }
