@@ -163,5 +163,10 @@ namespace F29Downloader.Services
             }
         }
 
+        public async Task CerrarNavegador()
+        {
+            await browserService.Cerrar();
+        }
+
     }
 }
