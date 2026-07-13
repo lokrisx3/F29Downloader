@@ -7,7 +7,8 @@ namespace F29Downloader
     public partial class Form1 : Form
     {
         private string rutaExcel = "";
-
+        private DownloadService download =
+        new DownloadService();
 
         public Form1()
         {
@@ -64,9 +65,11 @@ namespace F29Downloader
             txtLog.AppendText(mensaje);
         }
         private async void btnProbarNavegador_Click(
-    object sender,
-    EventArgs e)
+ object sender,
+ EventArgs e)
         {
+            download.IniciarProceso();
+
             Models.Contribuyente contribuyente =
                 new Models.Contribuyente
                 {
@@ -74,9 +77,6 @@ namespace F29Downloader
                     Clave = "Patricio2026@",
                     Periodo = "05/2025"
                 };
-
-            DownloadService download =
-                new DownloadService();
 
             await download.ProcesarContribuyente(
                 contribuyente,
@@ -102,6 +102,7 @@ namespace F29Downloader
                 return;
             }
 
+
             int segundosEspera = 0;
 
             if (!int.TryParse(textBox1.Text, out segundosEspera))
@@ -114,8 +115,14 @@ namespace F29Downloader
                 return;
             }
 
-            DownloadService download =
-                new DownloadService();
+
+            // Reinicia el estado de cancelación
+            download.IniciarProceso();
+
+
+            EscribirLog(
+                "\r\n===== Inicio del proceso =====\r\n");
+
 
             for (int i = 0; i < lista.Count; i++)
             {
@@ -124,19 +131,45 @@ namespace F29Downloader
                     chkHeadless.Checked,
                     EscribirLog);
 
+
+                // Verificar si el usuario presionó Forzar Cierre
+                if (download.ProcesoCancelado())
+                {
+                    EscribirLog(
+                        "\r\n⚠ Proceso cancelado por usuario.\r\n");
+
+                    break;
+                }
+
+
                 if (i < lista.Count - 1 &&
                     segundosEspera > 0)
                 {
                     EscribirLog(
                         $"Esperando {segundosEspera} segundos...\r\n");
 
+
                     await Task.Delay(
                         TimeSpan.FromSeconds(segundosEspera));
                 }
             }
 
+
             EscribirLog(
                 "\r\nProceso finalizado.\r\n");
+        }
+
+        private async void forceClose_Click(
+    object sender,
+    EventArgs e)
+        {
+            EscribirLog(
+                "⚠ Cerrando navegador forzadamente...\r\n");
+
+            await download.ForzarCierre();
+
+            EscribirLog(
+                "✓ Navegador cerrado.\r\n");
         }
     }
 }

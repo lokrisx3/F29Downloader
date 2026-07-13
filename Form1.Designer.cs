@@ -154,6 +154,7 @@
             forceClose.TabIndex = 13;
             forceClose.Text = "Forzar Cierre";
             forceClose.UseVisualStyleBackColor = true;
+            forceClose.Click += forceClose_Click;
             // 
             // lblEstadoNavegador
             // 

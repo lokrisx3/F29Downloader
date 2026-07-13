@@ -5,14 +5,46 @@ namespace F29Downloader.Services
 {
     public class DownloadService
     {
+        private SiiService? siiActual;
+        private bool cancelado = false;
+        public async Task ForzarCierre()
+        {
+            cancelado = true;
+
+            if (siiActual != null)
+            {
+                await siiActual.ForzarCierreNavegador();
+            }
+        }
+        public void IniciarProceso()
+        {
+            cancelado = false;
+        }
+
+        public bool ProcesoCancelado()
+        {
+            return cancelado;
+        }
         public async Task ProcesarContribuyente(
      Contribuyente contribuyente,
      bool headless,
      Action<string> escribirLog)
         {
-            SiiService sii = new SiiService();
+            siiActual =
+                new SiiService();
+
+            SiiService sii =
+                siiActual;
 
             IPage? pagina = null;
+
+            if (cancelado)
+            {
+                escribirLog(
+                    "⚠ Proceso cancelado por usuario.\r\n");
+
+                return;
+            }
 
             try
             {
@@ -54,6 +86,9 @@ namespace F29Downloader.Services
 
                 escribirLog(
                     "✓ Consulta F29 abierta.\r\n");
+
+                if (cancelado)
+                    return;
 
 
                 await sii.SeleccionarFormulario29(pagina);

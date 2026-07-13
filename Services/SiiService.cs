@@ -33,6 +33,11 @@ namespace F29Downloader.Services
 
         public async Task CerrarSesion(IPage pagina)
         {
+            if (pagina.IsClosed)
+            {
+                return;
+            }
+
             await pagina.GotoAsync(
                 URL_LOGOUT,
                 new PageGotoOptions
@@ -166,6 +171,11 @@ namespace F29Downloader.Services
         public async Task CerrarNavegador()
         {
             await browserService.Cerrar();
+        }
+
+        public async Task ForzarCierreNavegador()
+        {
+            await browserService.ForzarCierre();
         }
 
     }

@@ -89,5 +89,30 @@ namespace F29Downloader.Services
 
             playwright?.Dispose();
         }
+
+        public async Task ForzarCierre()
+        {
+            try
+            {
+                if (context != null)
+                {
+                    await context.CloseAsync();
+                    context = null;
+                }
+
+                if (browser != null)
+                {
+                    await browser.CloseAsync();
+                    browser = null;
+                }
+
+                playwright?.Dispose();
+                playwright = null;
+            }
+            catch
+            {
+
+            }
+        }
     }
 }
