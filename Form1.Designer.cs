@@ -37,9 +37,7 @@
             btnSeleccionarExcel = new Button();
             btnCargarExcel = new Button();
             btnProbarNavegador = new Button();
-            chkHeadless = new CheckBox();
             forceClose = new Button();
-            lblEstadoNavegador = new Label();
             label2 = new Label();
             label3 = new Label();
             label4 = new Label();
@@ -136,16 +134,6 @@
             btnProbarNavegador.UseVisualStyleBackColor = true;
             btnProbarNavegador.Click += btnProbarNavegador_Click;
             // 
-            // chkHeadless
-            // 
-            chkHeadless.AutoSize = true;
-            chkHeadless.Location = new Point(338, 245);
-            chkHeadless.Name = "chkHeadless";
-            chkHeadless.Size = new Size(164, 19);
-            chkHeadless.TabIndex = 12;
-            chkHeadless.Text = "Ejecutar navegador oculto";
-            chkHeadless.UseVisualStyleBackColor = true;
-            // 
             // forceClose
             // 
             forceClose.Location = new Point(262, 48);
@@ -155,15 +143,6 @@
             forceClose.Text = "Forzar Cierre";
             forceClose.UseVisualStyleBackColor = true;
             forceClose.Click += forceClose_Click;
-            // 
-            // lblEstadoNavegador
-            // 
-            lblEstadoNavegador.AutoSize = true;
-            lblEstadoNavegador.Location = new Point(350, 298);
-            lblEstadoNavegador.Name = "lblEstadoNavegador";
-            lblEstadoNavegador.Size = new Size(130, 15);
-            lblEstadoNavegador.TabIndex = 14;
-            lblEstadoNavegador.Text = "⚫ Navegador detenido";
             // 
             // label2
             // 
@@ -209,9 +188,7 @@
             Controls.Add(label4);
             Controls.Add(label3);
             Controls.Add(label2);
-            Controls.Add(lblEstadoNavegador);
             Controls.Add(forceClose);
-            Controls.Add(chkHeadless);
             Controls.Add(btnProbarNavegador);
             Controls.Add(btnCargarExcel);
             Controls.Add(btnSeleccionarExcel);
@@ -238,9 +215,7 @@
         private Button btnSeleccionarExcel;
         private Button btnCargarExcel;
         private Button btnProbarNavegador;
-        private CheckBox chkHeadless;
         private Button forceClose;
-        private Label lblEstadoNavegador;
         private Label label2;
         private Label label3;
         private Label label4;

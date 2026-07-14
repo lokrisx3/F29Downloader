@@ -163,7 +163,6 @@ namespace F29Downloader
 
             await download.ProcesarContribuyente(
                 contribuyente,
-                chkHeadless.Checked,
                 EscribirLog,
                 ActualizarGrilla);
         }
@@ -202,7 +201,6 @@ namespace F29Downloader
 
             await download.IniciarDescarga(
                  lista,
-                 chkHeadless.Checked,
                  segundosEspera,
                  EscribirLog,
                  ActualizarGrilla);
@@ -237,29 +235,5 @@ namespace F29Downloader
                 "✓ Navegador cerrado.\r\n");
         }
 
-        private void ConfigurarColumnaPdf()
-        {
-            if (dgvContribuyentes.Columns["RutaPdf"] == null)
-                return;
-
-
-            dgvContribuyentes.Columns["RutaPdf"].Visible = false;
-
-
-            DataGridViewLinkColumn columnaPdf =
-                new DataGridViewLinkColumn();
-
-            columnaPdf.Name = "AbrirPdf";
-
-            columnaPdf.HeaderText = "PDF";
-
-            columnaPdf.Text = "Abrir PDF";
-
-            columnaPdf.UseColumnTextForLinkValue = true;
-
-
-            dgvContribuyentes.Columns.Add(
-                columnaPdf);
-        }
     }
 }

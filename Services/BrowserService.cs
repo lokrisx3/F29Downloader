@@ -10,7 +10,7 @@ namespace F29Downloader.Services
 
         private IBrowserContext? context;
 
-        public async Task<IPage> CrearPagina(bool headless)
+        public async Task<IPage> CrearPagina()
         {
             string carpetaDescargas =
                 Path.Combine(
@@ -26,7 +26,7 @@ namespace F29Downloader.Services
                 await playwright.Chromium.LaunchAsync(
                     new BrowserTypeLaunchOptions
                     {
-                        Headless = headless,
+                        Headless = false,
                         DownloadsPath = carpetaDescargas
                     });
 

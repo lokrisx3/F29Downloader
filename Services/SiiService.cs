@@ -16,10 +16,10 @@ namespace F29Downloader.Services
             browserService = new BrowserService();
         }
 
-        public async Task<IPage> AbrirLogin(bool headless)
+        public async Task<IPage> AbrirLogin()
         {
             IPage pagina =
-                await browserService.CrearPagina(headless);
+                await browserService.CrearPagina();
 
             await pagina.GotoAsync(
                 URL_LOGIN,

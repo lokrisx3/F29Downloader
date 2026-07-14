@@ -85,7 +85,6 @@ namespace F29Downloader.Services
         }
         public async Task ProcesarContribuyente(
     Contribuyente contribuyente,
-    bool headless,
     Action<string> escribirLog,
     Action actualizarGrilla)
         {
@@ -120,7 +119,7 @@ namespace F29Downloader.Services
                     actualizarGrilla);
 
                 pagina =
-                    await sii.AbrirLogin(headless);
+                    await sii.AbrirLogin();
 
                 LoginService login =
                     new LoginService();
@@ -417,11 +416,10 @@ namespace F29Downloader.Services
         }
 
         public async Task IniciarDescarga(
-    List<Contribuyente> lista,
-    bool headless,
-    int segundosEspera,
-    Action<string> escribirLog,
-    Action actualizarGrilla)
+            List<Contribuyente> lista,
+            int segundosEspera,
+            Action<string> escribirLog,
+            Action actualizarGrilla)
         {
             IniciarProceso();
 
@@ -432,7 +430,6 @@ namespace F29Downloader.Services
             {
                 await ProcesarContribuyente(
                     lista[i],
-                    headless,
                     escribirLog,
                     actualizarGrilla);
 
