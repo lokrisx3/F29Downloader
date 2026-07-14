@@ -34,9 +34,15 @@ namespace F29Downloader.Services
             Action actualizarGrilla)
         {
             contribuyente.Estado = estado;
+
             contribuyente.Mensaje = mensaje;
 
-            db.ActualizarContribuyente(contribuyente);
+            contribuyente.FechaProceso =
+                DateTime.Now.ToString(
+                    "dd/MM/yyyy HH:mm:ss");
+
+            db.ActualizarContribuyente(
+                contribuyente);
 
             actualizarGrilla();
         }
@@ -155,7 +161,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Autenticado",
-                    "",
+                    "Inicio de sesión exitoso",
                     actualizarGrilla);
 
                 escribirLog(
@@ -172,7 +178,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Consulta F29",
-                    "",
+                    "Abriendo Consulta F29",
                     actualizarGrilla);
 
                 escribirLog(
@@ -189,7 +195,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Formulario 29",
-                    "",
+                    "Formulario seleccionado",
                     actualizarGrilla);
 
                 escribirLog(
@@ -205,11 +211,11 @@ namespace F29Downloader.Services
                     mes);
 
                 CambiarEstado(
-                    db,
-                    contribuyente,
-                    $"Mes {mes}",
-                    "",
-                    actualizarGrilla);
+                db, 
+                contribuyente,
+                $"Mes {mes}",
+                $"Período {contribuyente.Periodo}",
+                actualizarGrilla);
 
                 escribirLog(
                     $"✓ Mes {mes} seleccionado.\r\n");
@@ -225,7 +231,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Buscando datos",
-                    "",
+                    "Consultando declaraciones",
                     actualizarGrilla);
 
                 escribirLog(
@@ -240,7 +246,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Formulario abierto",
-                    "",
+                    "Esperando generación del PDF",
                     actualizarGrilla);
 
                 escribirLog(
@@ -265,12 +271,7 @@ namespace F29Downloader.Services
                 escribirLog(
                     "✓ PDF abierto.\r\n");
 
-                CambiarEstado(
-                    db,
-                    contribuyente,
-                    "Descargando PDF",
-                    "",
-                    actualizarGrilla);
+                
 
                 escribirLog(
                     "⏳ Descargando PDF...\r\n");
@@ -287,6 +288,13 @@ namespace F29Downloader.Services
                 string nombrePdf =
                     ConfigService.ObtenerNombrePdf(
                         contribuyente);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Descargando PDF",
+                    nombrePdf,
+                    actualizarGrilla);
 
                 string carpetaContribuyente =
                     Path.Combine(
@@ -351,7 +359,7 @@ namespace F29Downloader.Services
                     db,
                     contribuyente,
                     "Cancelado",
-                    "",
+                    "Cancelado",
                     actualizarGrilla);
 
                 escribirLog(
