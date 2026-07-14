@@ -8,6 +8,7 @@ namespace F29Downloader.Models
 {
     public class Contribuyente
     {
+        public int Id { get; set; }
         public string Rut { get; set; } = "";
 
         public string Clave { get; set; } = "";

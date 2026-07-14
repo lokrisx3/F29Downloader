@@ -65,8 +65,8 @@ namespace F29Downloader
             txtLog.AppendText(mensaje);
         }
         private async void btnProbarNavegador_Click(
- object sender,
- EventArgs e)
+         object sender,
+         EventArgs e)
         {
             download.IniciarProceso();
 
@@ -81,7 +81,8 @@ namespace F29Downloader
             await download.ProcesarContribuyente(
                 contribuyente,
                 chkHeadless.Checked,
-                EscribirLog);
+                EscribirLog,
+                ActualizarGrilla);
         }
 
         private async void btnIniciarProceso_Click(
@@ -116,49 +117,30 @@ namespace F29Downloader
             }
 
 
-            // Reinicia el estado de cancelación
-            download.IniciarProceso();
-
-
-            EscribirLog(
-                "\r\n===== Inicio del proceso =====\r\n");
-
-
-            for (int i = 0; i < lista.Count; i++)
-            {
-                await download.ProcesarContribuyente(
-                    lista[i],
-                    chkHeadless.Checked,
-                    EscribirLog);
-
-
-                // Verificar si el usuario presionó Forzar Cierre
-                if (download.ProcesoCancelado())
-                {
-                    EscribirLog(
-                        "\r\n⚠ Proceso cancelado por usuario.\r\n");
-
-                    break;
-                }
-
-
-                if (i < lista.Count - 1 &&
-                    segundosEspera > 0)
-                {
-                    EscribirLog(
-                        $"Esperando {segundosEspera} segundos...\r\n");
-
-
-                    await Task.Delay(
-                        TimeSpan.FromSeconds(segundosEspera));
-                }
-            }
-
-
-            EscribirLog(
-                "\r\nProceso finalizado.\r\n");
+            await download.IniciarDescarga(
+                 lista,
+                 chkHeadless.Checked,
+                 segundosEspera,
+                 EscribirLog,
+                 ActualizarGrilla);
         }
 
+        private void ActualizarGrilla()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(ActualizarGrilla);
+                return;
+            }
+
+            DatabaseService db =
+                new DatabaseService();
+
+            dgvContribuyentes.DataSource = null;
+
+            dgvContribuyentes.DataSource =
+                db.ObtenerContribuyentes();
+        }
         private async void forceClose_Click(
     object sender,
     EventArgs e)

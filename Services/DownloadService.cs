@@ -25,213 +25,39 @@ namespace F29Downloader.Services
         {
             return cancelado;
         }
-        public async Task ProcesarContribuyente(
-     Contribuyente contribuyente,
-     bool headless,
-     Action<string> escribirLog)
+
+        private void CambiarEstado(
+            DatabaseService db,
+            Contribuyente contribuyente,
+            string estado,
+            string mensaje,
+            Action actualizarGrilla)
         {
-            siiActual =
-                new SiiService();
+            contribuyente.Estado = estado;
+            contribuyente.Mensaje = mensaje;
 
-            SiiService sii =
-                siiActual;
+            db.ActualizarContribuyente(contribuyente);
 
-            IPage? pagina = null;
+            actualizarGrilla();
+        }
 
+        private void VerificarCancelacion(
+            Action<string> escribirLog)
+        {
             if (cancelado)
             {
                 escribirLog(
                     "⚠ Proceso cancelado por usuario.\r\n");
 
-                return;
-            }
-
-            try
-            {
-                pagina = await sii.AbrirLogin(headless);
-
-                LoginService login =
-                    new LoginService();
-
-
-                escribirLog(
-                    "\r\n" +
-                    "--------------------------------------------------\r\n" +
-                    "Procesando contribuyente\r\n" +
-                    $"RUT     : {contribuyente.Rut}\r\n" +
-                    $"Periodo : {contribuyente.Periodo}\r\n" +
-                    "--------------------------------------------------\r\n");
-
-
-                bool resultado =
-                    await login.IniciarSesion(
-                        pagina,
-                        contribuyente);
-
-
-                if (!resultado)
-                {
-                    escribirLog(
-                        "✗ Error al iniciar sesión.\r\n");
-
-                    return;
-                }
-
-
-                escribirLog(
-                    "✓ Inicio de sesión exitoso.\r\n");
-
-
-                await sii.IrAConsultaF29(pagina);
-
-                escribirLog(
-                    "✓ Consulta F29 abierta.\r\n");
-
-                if (cancelado)
-                    return;
-
-
-                await sii.SeleccionarFormulario29(pagina);
-
-                escribirLog(
-                    "✓ Formulario 29 seleccionado.\r\n");
-
-
-                string mes =
-                ObtenerNombreMes(
-                    contribuyente.Periodo);
-
-
-                await sii.SeleccionarMes(
-                    pagina,
-                    mes);
-
-                escribirLog(
-                    "✓ Mes seleccionado.\r\n");
-
-
-                await sii.BuscarDatosIngresados(pagina);
-
-                escribirLog(
-                    "✓ Datos ingresados consultados.\r\n");
-
-
-                await sii.AbrirFormulario(pagina);
-
-                escribirLog(
-                    "✓ Formulario abierto.\r\n");
-
-
-                Task<IPage> popupTask =
-                    pagina.WaitForPopupAsync();
-
-
-                await sii.SeleccionarFormularioCompacto(
-                    pagina);
-
-
-                IPage paginaPdf =
-                    await sii.AbrirPdf(popupTask);
-
-
-                string urlPdf =
-                    paginaPdf.Url;
-
-
-                IBrowserContext contexto =
-                    sii.ObtenerContexto();
-
-
-                PdfService pdf =
-                    new PdfService();
-
-
-                string nombrePdf =
-                    ConfigService.ObtenerNombrePdf(
-                        contribuyente);
-
-
-                string carpetaContribuyente =
-                    Path.Combine(
-                        ConfigService.DownloadsPath,
-                        contribuyente.Rut);
-
-
-                string rutaPdf =
-                    Path.Combine(
-                        carpetaContribuyente,
-                        nombrePdf);
-
-
-                bool pdfGuardado =
-                    await pdf.GuardarPdfDesdeUrl(
-                        contexto,
-                        urlPdf,
-                        rutaPdf);
-
-
-                if (pdfGuardado)
-                {
-                    escribirLog(
-                        "✓ PDF guardado correctamente.\r\n");
-
-                    escribirLog(
-                        $"✓ Archivo: {nombrePdf}\r\n");
-                }
-                else
-                {
-                    escribirLog(
-                        $"✗ {pdf.UltimoMensaje}\r\n");
-                }
-
-
-                await sii.CerrarPopup(
-                    paginaPdf);
-
-                escribirLog(
-                    "✓ Popup PDF cerrado.\r\n");
-            }
-            catch (Exception ex)
-            {
-                escribirLog(
-                    $"✗ Error inesperado: {ex.Message}\r\n");
-            }
-            finally
-            {
-                try
-                {
-                    if (pagina != null)
-                    {
-                        await sii.CerrarSesion(pagina);
-
-                        escribirLog(
-                            "✓ Sesión SII cerrada.\r\n");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    escribirLog(
-                        $"⚠ Error cerrando sesión: {ex.Message}\r\n");
-                }
-
-
-                try
-                {
-                    await sii.CerrarNavegador();
-
-                    escribirLog(
-                        "✓ Navegador cerrado.\r\n");
-                }
-                catch (Exception ex)
-                {
-                    escribirLog(
-                        $"⚠ Error cerrando navegador: {ex.Message}\r\n");
-                }
+                throw new OperationCanceledException();
             }
         }
-        private string ObtenerNombreMes(string periodo)
+
+        private string ObtenerNombreMes(
+            string periodo)
         {
-            string numeroMes = periodo.Split('/')[0];
+            string numeroMes =
+                periodo.Split('/')[0];
 
             return numeroMes switch
             {
@@ -250,6 +76,379 @@ namespace F29Downloader.Services
                 _ => throw new Exception(
                     $"Mes inválido en periodo: {periodo}")
             };
+        }
+        public async Task ProcesarContribuyente(
+    Contribuyente contribuyente,
+    bool headless,
+    Action<string> escribirLog,
+    Action actualizarGrilla)
+        {
+            siiActual =
+                new SiiService();
+
+            SiiService sii =
+                siiActual;
+
+            DatabaseService db =
+                new DatabaseService();
+
+            IPage? pagina = null;
+
+            if (cancelado)
+            {
+                escribirLog(
+                    "⚠ Proceso cancelado por usuario.\r\n");
+
+                return;
+            }
+
+            try
+            {
+                contribuyente.Intentos++;
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Conectando",
+                    "",
+                    actualizarGrilla);
+
+                pagina =
+                    await sii.AbrirLogin(headless);
+
+                LoginService login =
+                    new LoginService();
+
+                escribirLog(
+                    "\r\n" +
+                    "--------------------------------------------------\r\n" +
+                    "Procesando contribuyente\r\n" +
+                    $"RUT     : {contribuyente.Rut}\r\n" +
+                    $"Periodo : {contribuyente.Periodo}\r\n" +
+                    "--------------------------------------------------\r\n");
+
+                string mes =
+                    ObtenerNombreMes(
+                        contribuyente.Periodo);
+
+                bool resultado =
+                    await login.IniciarSesion(
+                        pagina,
+                        contribuyente);
+
+                if (!resultado)
+                {
+                    CambiarEstado(
+                        db,
+                        contribuyente,
+                        "Error",
+                        "Error al iniciar sesión",
+                        actualizarGrilla);
+
+                    escribirLog(
+                        "✗ Error al iniciar sesión.\r\n");
+
+                    return;
+                }
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Autenticado",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "✓ Inicio de sesión exitoso.\r\n");
+
+                VerificarCancelacion(escribirLog);
+
+                escribirLog(
+                    "⏳ Abriendo consulta F29...\r\n");
+
+                await sii.IrAConsultaF29(pagina);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Consulta F29",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "✓ Consulta F29 abierta.\r\n");
+
+                VerificarCancelacion(escribirLog);
+
+                escribirLog(
+                    "⏳ Seleccionando Formulario 29...\r\n");
+
+                await sii.SeleccionarFormulario29(pagina);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Formulario 29",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "✓ Formulario 29 seleccionado.\r\n");
+
+                VerificarCancelacion(escribirLog);
+
+                escribirLog(
+                    $"⏳ Seleccionando mes {mes}...\r\n");
+
+                await sii.SeleccionarMes(
+                    pagina,
+                    mes);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    $"Mes {mes}",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    $"✓ Mes {mes} seleccionado.\r\n");
+
+                VerificarCancelacion(escribirLog);
+
+                escribirLog(
+                    "⏳ Buscando datos ingresados...\r\n");
+
+                await sii.BuscarDatosIngresados(pagina);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Buscando datos",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "✓ Datos encontrados.\r\n");
+
+                escribirLog(
+                    "⏳ Abriendo formulario...\r\n");
+
+                await sii.AbrirFormulario(pagina);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Formulario abierto",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "⏳ Abriendo formulario compacto...\r\n");
+
+                Task<IPage> popupTask =
+                    pagina.WaitForPopupAsync();
+
+                await sii.SeleccionarFormularioCompacto(
+                    pagina);
+
+                escribirLog(
+                    "✓ Formulario compacto solicitado.\r\n");
+
+                escribirLog(
+                    "⏳ Esperando generación del PDF...\r\n");
+
+                IPage paginaPdf =
+                    await sii.AbrirPdf(
+                        popupTask);
+
+                escribirLog(
+                    "✓ PDF abierto.\r\n");
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Descargando PDF",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "⏳ Descargando PDF...\r\n");
+
+                string urlPdf =
+                    paginaPdf.Url;
+
+                IBrowserContext contexto =
+                    sii.ObtenerContexto();
+
+                PdfService pdf =
+                    new PdfService();
+
+                string nombrePdf =
+                    ConfigService.ObtenerNombrePdf(
+                        contribuyente);
+
+                string carpetaContribuyente =
+                    Path.Combine(
+                        ConfigService.DownloadsPath,
+                        contribuyente.Rut);
+
+                string rutaPdf =
+                    Path.Combine(
+                        carpetaContribuyente,
+                        nombrePdf);
+                
+
+                bool pdfGuardado =
+                    await pdf.GuardarPdfDesdeUrl(
+                        contexto,
+                        urlPdf,
+                        rutaPdf);
+
+                if (pdfGuardado)
+                {
+                    contribuyente.RutaPdf =
+                        rutaPdf;
+
+                    CambiarEstado(
+                        db,
+                        contribuyente,
+                        "Finalizado",
+                        "",
+                        actualizarGrilla);
+
+                    escribirLog(
+                        "✓ PDF guardado correctamente.\r\n");
+
+                    escribirLog(
+                        $"✓ Archivo: {nombrePdf}\r\n");
+                }
+                else
+                {
+                    CambiarEstado(
+                        db,
+                        contribuyente,
+                        "Error",
+                        pdf.UltimoMensaje,
+                        actualizarGrilla);
+
+                    escribirLog(
+                        $"✗ {pdf.UltimoMensaje}\r\n");
+                }
+
+                escribirLog(
+                    "⏳ Cerrando ventana del PDF...\r\n");
+
+                await sii.CerrarPopup(
+                    paginaPdf);
+
+                escribirLog(
+                    "✓ Popup PDF cerrado.\r\n");
+            }
+            catch (OperationCanceledException)
+            {
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Cancelado",
+                    "",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "⚠ Proceso cancelado por el usuario.\r\n");
+            }
+            catch (Exception ex)
+            {
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Error",
+                    ex.Message,
+                    actualizarGrilla);
+
+                escribirLog(
+                    $"✗ Error inesperado: {ex.Message}\r\n");
+            }
+            finally
+            {
+                try
+                {
+                    if (pagina != null)
+                    {
+                        escribirLog(
+                            "⏳ Cerrando sesión SII...\r\n");
+
+                        await sii.CerrarSesion(pagina);
+
+                        escribirLog(
+                            "✓ Sesión SII cerrada.\r\n");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    escribirLog(
+                        $"⚠ Error cerrando sesión: {ex.Message}\r\n");
+                }
+
+                try
+                {
+                    escribirLog(
+                        "⏳ Cerrando navegador...\r\n");
+
+                    await sii.CerrarNavegador();
+
+                    escribirLog(
+                        "✓ Navegador cerrado.\r\n");
+                }
+                catch (Exception ex)
+                {
+                    escribirLog(
+                        $"⚠ Error cerrando navegador: {ex.Message}\r\n");
+                }
+            }
+        }
+
+        public async Task IniciarDescarga(
+    List<Contribuyente> lista,
+    bool headless,
+    int segundosEspera,
+    Action<string> escribirLog,
+    Action actualizarGrilla)
+        {
+            IniciarProceso();
+
+            escribirLog(
+                "\r\n===== Inicio del proceso =====\r\n");
+
+            for (int i = 0; i < lista.Count; i++)
+            {
+                await ProcesarContribuyente(
+                    lista[i],
+                    headless,
+                    escribirLog,
+                    actualizarGrilla);
+
+                if (ProcesoCancelado())
+                {
+                    escribirLog(
+                        "\r\n⚠ Proceso cancelado por usuario.\r\n");
+
+                    break;
+                }
+
+                if (i < lista.Count - 1 &&
+                    segundosEspera > 0)
+                {
+                    escribirLog(
+                        $"Esperando {segundosEspera} segundos...\r\n");
+
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(segundosEspera));
+                }
+            }
+
+            escribirLog(
+                "\r\n===== Proceso finalizado =====\r\n");
         }
     }
 }

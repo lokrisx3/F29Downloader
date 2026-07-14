@@ -181,88 +181,128 @@ namespace F29Downloader.Services
             List<Contribuyente> lista =
                 new List<Contribuyente>();
 
-
             using SqliteConnection conexion =
                 new SqliteConnection(
                     $"Data Source={rutaBaseDatos}"
                 );
 
-
             conexion.Open();
-
 
             string sql =
             @"
-            SELECT
-                Rut,
-                Clave,
-                Periodo,
-                Estado,
-                Mensaje,
-                FechaProceso,
-                RutaPdf,
-                Intentos
-            FROM Contribuyentes;
-            ";
-
+    SELECT
+        Id,
+        Rut,
+        Clave,
+        Periodo,
+        Estado,
+        Mensaje,
+        FechaProceso,
+        RutaPdf,
+        Intentos
+    FROM Contribuyentes;
+    ";
 
             using SqliteCommand comando =
                 new SqliteCommand(sql, conexion);
 
-
             using SqliteDataReader reader =
                 comando.ExecuteReader();
-
 
             while (reader.Read())
             {
                 Contribuyente contribuyente =
                     new Contribuyente();
 
+                contribuyente.Id =
+                    reader.GetInt32(0);
 
                 contribuyente.Rut =
-                    reader.GetString(0);
-
-
-                contribuyente.Clave =
                     reader.GetString(1);
 
-
-                contribuyente.Periodo =
+                contribuyente.Clave =
                     reader.GetString(2);
 
-
-                contribuyente.Estado =
+                contribuyente.Periodo =
                     reader.GetString(3);
 
+                contribuyente.Estado =
+                    reader.GetString(4);
 
                 contribuyente.Mensaje =
-                    reader.IsDBNull(4)
-                    ? ""
-                    : reader.GetString(4);
-
+                    reader.IsDBNull(5)
+                        ? ""
+                        : reader.GetString(5);
 
                 contribuyente.FechaProceso =
-                    reader.IsDBNull(5)
-                    ? ""
-                    : reader.GetString(5);
-
+                    reader.IsDBNull(6)
+                        ? ""
+                        : reader.GetString(6);
 
                 contribuyente.RutaPdf =
-                    reader.IsDBNull(6)
-                    ? ""
-                    : reader.GetString(6);
-
+                    reader.IsDBNull(7)
+                        ? ""
+                        : reader.GetString(7);
 
                 contribuyente.Intentos =
-                    reader.GetInt32(7);
-
+                    reader.GetInt32(8);
 
                 lista.Add(contribuyente);
             }
 
-
             return lista;
+        }
+
+        public void ActualizarContribuyente(
+    Contribuyente contribuyente)
+        {
+            using SqliteConnection conexion =
+                new SqliteConnection(
+                    $"Data Source={rutaBaseDatos}");
+
+            conexion.Open();
+
+            string sql =
+            @"
+UPDATE Contribuyentes
+SET
+    Estado = $estado,
+    Mensaje = $mensaje,
+    FechaProceso = $fechaProceso,
+    RutaPdf = $rutaPdf,
+    Intentos = $intentos
+WHERE
+    Id = $id;
+";
+
+            using SqliteCommand comando =
+                new SqliteCommand(sql, conexion);
+
+            comando.Parameters.AddWithValue(
+                "$estado",
+                contribuyente.Estado);
+
+            comando.Parameters.AddWithValue(
+                "$mensaje",
+                contribuyente.Mensaje);
+
+            comando.Parameters.AddWithValue(
+                "$fechaProceso",
+                contribuyente.FechaProceso);
+
+            comando.Parameters.AddWithValue(
+                "$rutaPdf",
+                contribuyente.RutaPdf);
+
+            comando.Parameters.AddWithValue(
+                "$intentos",
+                contribuyente.Intentos);
+
+            comando.Parameters.AddWithValue(
+                "$id",
+                contribuyente.Id);
+
+            comando.ExecuteNonQuery();
         }
     }
 }
