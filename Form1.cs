@@ -16,6 +16,83 @@ namespace F29Downloader
 
             DatabaseService db = new DatabaseService();
             db.CrearBaseDatos();
+            dgvContribuyentes.CellContentClick +=
+                dgvContribuyentes_CellContentClick;
+
+            dgvContribuyentes.CellContentClick +=
+                dgvContribuyentes_CellContentClick;
+        }
+
+        private void ConfigurarColumnaRutaPdf()
+        {
+            if (dgvContribuyentes.Columns["RutaPdf"] == null)
+                return;
+
+
+            int indice =
+                dgvContribuyentes.Columns["RutaPdf"].Index;
+
+
+            DataGridViewLinkColumn columnaPdf =
+                new DataGridViewLinkColumn();
+
+
+            columnaPdf.Name = "RutaPdf";
+
+            columnaPdf.HeaderText = "PDF";
+
+            columnaPdf.DataPropertyName = "RutaPdf";
+
+            columnaPdf.Width = 350;
+
+
+            dgvContribuyentes.Columns.Remove(
+                "RutaPdf");
+
+
+            dgvContribuyentes.Columns.Insert(
+                indice,
+                columnaPdf);
+        }
+        private void dgvContribuyentes_CellContentClick(
+    object sender,
+    DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0)
+                return;
+
+
+            if (dgvContribuyentes.Columns[e.ColumnIndex].Name
+                == "RutaPdf")
+            {
+                string rutaPdf =
+                    dgvContribuyentes
+                    .Rows[e.RowIndex]
+                    .Cells["RutaPdf"]
+                    .Value?
+                    .ToString();
+
+
+                if (string.IsNullOrWhiteSpace(rutaPdf))
+                    return;
+
+
+                if (File.Exists(rutaPdf))
+                {
+                    System.Diagnostics.Process.Start(
+                        new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = rutaPdf,
+                            UseShellExecute = true
+                        });
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "El archivo no existe:\r\n" +
+                        rutaPdf);
+                }
+            }
         }
 
         private void btnSeleccionarExcel_Click(object sender, EventArgs e)
@@ -55,15 +132,21 @@ namespace F29Downloader
             db.InsertarContribuyentes(lista);
 
             dgvContribuyentes.DataSource =
-                db.ObtenerContribuyentes();
+    db.ObtenerContribuyentes();
+
+            ConfigurarColumnaRutaPdf();
 
             txtLog.AppendText(
                 $"Se cargaron {lista.Count} registros.\r\n");
         }
+
+
         private void EscribirLog(string mensaje)
         {
             txtLog.AppendText(mensaje);
         }
+
+
         private async void btnProbarNavegador_Click(
          object sender,
          EventArgs e)
@@ -152,6 +235,31 @@ namespace F29Downloader
 
             EscribirLog(
                 "✓ Navegador cerrado.\r\n");
+        }
+
+        private void ConfigurarColumnaPdf()
+        {
+            if (dgvContribuyentes.Columns["RutaPdf"] == null)
+                return;
+
+
+            dgvContribuyentes.Columns["RutaPdf"].Visible = false;
+
+
+            DataGridViewLinkColumn columnaPdf =
+                new DataGridViewLinkColumn();
+
+            columnaPdf.Name = "AbrirPdf";
+
+            columnaPdf.HeaderText = "PDF";
+
+            columnaPdf.Text = "Abrir PDF";
+
+            columnaPdf.UseColumnTextForLinkValue = true;
+
+
+            dgvContribuyentes.Columns.Add(
+                columnaPdf);
         }
     }
 }
