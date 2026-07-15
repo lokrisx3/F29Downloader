@@ -8,6 +8,8 @@ namespace F29Downloader.Services
         private SiiService? siiActual;
         private bool cancelado = false;
         private const int MaximoIntentosLogin = 2;
+        private HashSet<string> rutOmitidos =
+    new HashSet<string>();
         public async Task ForzarCierre()
         {
             cancelado = true;
@@ -20,6 +22,8 @@ namespace F29Downloader.Services
         public void IniciarProceso()
         {
             cancelado = false;
+
+            rutOmitidos.Clear();
         }
 
         public bool ProcesoCancelado()
@@ -46,6 +50,17 @@ namespace F29Downloader.Services
                 contribuyente);
 
             actualizarGrilla();
+        }
+        private bool FueOmitidoPorLogin(
+    List<Contribuyente> lista,
+    Contribuyente actual)
+        {
+            return lista.Any(x =>
+                x.Rut == actual.Rut &&
+                x.Estado == "Omitido" &&
+                x.Mensaje.Contains(
+                    "login",
+                    StringComparison.OrdinalIgnoreCase));
         }
 
         private void VerificarCancelacion(
@@ -439,27 +454,40 @@ namespace F29Downloader.Services
         }
 
         public async Task IniciarDescarga(
-            List<Contribuyente> lista,
-            int segundosEspera,
-            Action<string> escribirLog,
-            Action actualizarGrilla,
-            Action<string> actualizarEstado,
-            Action<int, int> actualizarProgreso,
-            Func<Contribuyente, bool> consultarReintento)
+    List<Contribuyente> lista,
+    int segundosEspera,
+    Action<string> escribirLog,
+    Action actualizarGrilla,
+    Action<string> actualizarEstado,
+    Action<int, int> actualizarProgreso,
+    Func<Contribuyente, bool> consultarReintento)
         {
             IniciarProceso();
+
+            DatabaseService db =
+                new DatabaseService();
+
 
             escribirLog(
                 "\r\n===== Inicio del proceso =====\r\n");
 
-            int total = lista.Count;
+
+            int total =
+                lista.Count;
+
 
             for (int i = 0; i < total; i++)
             {
-                int actual = i + 1;
+                int actual =
+                    i + 1;
+
 
                 int porcentaje =
                     (actual * 100) / total;
+
+
+                Contribuyente contribuyente =
+                    lista[i];
 
 
                 actualizarEstado(
@@ -471,11 +499,54 @@ namespace F29Downloader.Services
                     total);
 
 
+                //====================================================
+                // Verificar si el RUT ya fue omitido por error de login
+                //====================================================
+
+                bool omitidoAnteriormente =
+                    lista.Any(x =>
+                        x.Rut == contribuyente.Rut &&
+                        x != contribuyente &&
+                        x.Estado == "Omitido");
+
+
+                if (omitidoAnteriormente)
+                {
+                    contribuyente.Estado =
+                        "Omitido";
+
+
+                    contribuyente.Mensaje =
+                        "Omitido por fallo de login anterior";
+
+
+                    db.ActualizarContribuyente(
+                        contribuyente);
+
+
+                    actualizarGrilla();
+
+
+                    escribirLog(
+                        $"⚠ {contribuyente.Rut} omitido. " +
+                        "Existe un fallo de login anterior.\r\n");
+
+
+                    continue;
+                }
+
+
                 await ProcesarContribuyente(
-                lista[i],
-                escribirLog,
-                actualizarGrilla,
-                consultarReintento);
+                    contribuyente,
+                    escribirLog,
+                    actualizarGrilla,
+                    consultarReintento);
+
+                if (contribuyente.Estado == "Omitido")
+                {
+                    rutOmitidos.Add(
+                        contribuyente.Rut);
+                }
 
 
                 if (ProcesoCancelado())
@@ -492,8 +563,10 @@ namespace F29Downloader.Services
                     escribirLog(
                         "\r\n⚠ Proceso cancelado por usuario.\r\n");
 
+
                     break;
                 }
+
 
 
                 if (i < total - 1 &&
@@ -549,34 +622,57 @@ namespace F29Downloader.Services
         }
 
         private async Task<IPage?> RealizarLoginConReintentos(
-    SiiService sii,
-    Contribuyente contribuyente,
-    DatabaseService db,
-    Action<string> escribirLog,
-    Action actualizarGrilla,
-    Func<Contribuyente, bool> consultarReintento)
+     SiiService sii,
+     Contribuyente contribuyente,
+     DatabaseService db,
+     Action<string> escribirLog,
+     Action actualizarGrilla,
+     Func<Contribuyente, bool> consultarReintento)
         {
-            while (true)
+            while (!cancelado)
             {
+                if (cancelado)
+                {
+                    return null;
+                }
+
+
                 IPage pagina =
                     await sii.AbrirLogin();
+
 
                 LoginService login =
                     new LoginService();
 
+
                 bool loginCorrecto = false;
+
 
                 for (int intento = 1;
                      intento <= MaximoIntentosLogin;
                      intento++)
                 {
+                    if (cancelado)
+                    {
+                        if (!pagina.IsClosed)
+                        {
+                            await pagina.CloseAsync();
+                        }
+
+                        return null;
+                    }
+
+
                     escribirLog(
                         $"⏳ Intento de inicio de sesión ({intento}/{MaximoIntentosLogin})...\r\n");
+
 
                     loginCorrecto =
                         await login.IniciarSesion(
                             pagina,
                             contribuyente);
+
+
 
                     if (loginCorrecto)
                     {
@@ -587,31 +683,55 @@ namespace F29Downloader.Services
                             "Inicio de sesión exitoso",
                             actualizarGrilla);
 
+
                         escribirLog(
                             "✓ Inicio de sesión exitoso.\r\n");
+
 
                         return pagina;
                     }
 
+
+
                     escribirLog(
                         $"⚠ Falló el intento {intento}.\r\n");
 
-                    await pagina.CloseAsync();
+
+
+                    if (!pagina.IsClosed)
+                    {
+                        await pagina.CloseAsync();
+                    }
+
+
 
                     if (intento < MaximoIntentosLogin)
                     {
                         escribirLog(
                             "⏳ Reintentando automáticamente...\r\n");
 
+
                         await Task.Delay(2000);
+
+
+
+                        if (cancelado)
+                        {
+                            return null;
+                        }
+
+
 
                         pagina =
                             await sii.AbrirLogin();
+
 
                         login =
                             new LoginService();
                     }
                 }
+
+
 
                 CambiarEstado(
                     db,
@@ -620,8 +740,18 @@ namespace F29Downloader.Services
                     "No fue posible iniciar sesión",
                     actualizarGrilla);
 
+
+
+                escribirLog(
+                    "✗ No fue posible iniciar sesión después de los intentos automáticos.\r\n");
+
+
+
                 bool volverIntentar =
-                    consultarReintento(contribuyente);
+                    consultarReintento(
+                        contribuyente);
+
+
 
                 if (!volverIntentar)
                 {
@@ -631,16 +761,26 @@ namespace F29Downloader.Services
                         "Omitido",
                         "Omitido por usuario",
                         actualizarGrilla);
-                    if (!pagina.IsClosed)
-                    {
-                        await pagina.CloseAsync();
-                    }
+
+
+
+                    escribirLog(
+                        "⚠ Contribuyente omitido por usuario.\r\n");
+
+
+
                     return null;
                 }
+
+
 
                 escribirLog(
                     "⏳ Nuevo intento solicitado por el usuario...\r\n");
             }
+
+
+
+            return null;
         }
     }
 }

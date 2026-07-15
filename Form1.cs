@@ -193,16 +193,24 @@ namespace F29Downloader
         }
 
         private async void forceClose_Click(
-            object sender,
-            EventArgs e)
+    object sender,
+    EventArgs e)
         {
             EscribirLog(
-                "⚠ Cerrando navegador forzadamente...\r\n");
+                "⚠ Cancelando proceso...\r\n");
+
+
+            download.ProcesoCancelado();
+
 
             await download.ForzarCierre();
 
+
             EscribirLog(
                 "✓ Navegador cerrado.\r\n");
+
+
+            RestablecerInterfaz();
         }
 
         private void ActualizarEstado(
@@ -247,6 +255,31 @@ namespace F29Downloader
                 Math.Min(
                     actual,
                     total);
+        }
+
+        private void RestablecerInterfaz()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(RestablecerInterfaz);
+                return;
+            }
+
+
+            label.Text =
+                "Listo";
+
+
+            progressBarProceso.Value =
+                0;
+
+
+            label4.Text =
+                "0 / 0 (0%)";
+
+
+            txtLog.AppendText(
+                "✓ Proceso detenido por usuario.\r\n");
         }
     }
 }
