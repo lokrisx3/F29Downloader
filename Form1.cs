@@ -1,155 +1,106 @@
-﻿using System.Windows.Forms.Design;
-using F29Downloader.Services;
-using Microsoft.Playwright;
+﻿using F29Downloader.Services;
 
 namespace F29Downloader
 {
     public partial class Form1 : Form
     {
         private string rutaExcel = "";
-        private DownloadService download =
-        new DownloadService();
+
+        private readonly DownloadService download =
+            new DownloadService();
+
+        private readonly GridService grid =
+            new GridService();
 
         public Form1()
         {
             InitializeComponent();
 
-            DatabaseService db = new DatabaseService();
+            DatabaseService db =
+                new DatabaseService();
+
             db.CrearBaseDatos();
-            dgvContribuyentes.CellContentClick +=
-                dgvContribuyentes_CellContentClick;
 
             dgvContribuyentes.CellContentClick +=
                 dgvContribuyentes_CellContentClick;
+
+            
         }
 
-        private void ConfigurarColumnaRutaPdf()
-        {
-            if (dgvContribuyentes.Columns["RutaPdf"] == null)
-                return;
-
-
-            int indice =
-                dgvContribuyentes.Columns["RutaPdf"].Index;
-
-
-            DataGridViewLinkColumn columnaPdf =
-                new DataGridViewLinkColumn();
-
-
-            columnaPdf.Name = "RutaPdf";
-
-            columnaPdf.HeaderText = "PDF";
-
-            columnaPdf.DataPropertyName = "RutaPdf";
-
-            columnaPdf.Width = 350;
-
-
-            dgvContribuyentes.Columns.Remove(
-                "RutaPdf");
-
-
-            dgvContribuyentes.Columns.Insert(
-                indice,
-                columnaPdf);
-        }
         private void dgvContribuyentes_CellContentClick(
-    object sender,
-    DataGridViewCellEventArgs e)
+            object sender,
+            DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0)
-                return;
-
-
-            if (dgvContribuyentes.Columns[e.ColumnIndex].Name
-                == "RutaPdf")
-            {
-                string rutaPdf =
-                    dgvContribuyentes
-                    .Rows[e.RowIndex]
-                    .Cells["RutaPdf"]
-                    .Value?
-                    .ToString();
-
-
-                if (string.IsNullOrWhiteSpace(rutaPdf))
-                    return;
-
-
-                if (File.Exists(rutaPdf))
-                {
-                    System.Diagnostics.Process.Start(
-                        new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = rutaPdf,
-                            UseShellExecute = true
-                        });
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "El archivo no existe:\r\n" +
-                        rutaPdf);
-                }
-            }
+            grid.AbrirPdf(
+                dgvContribuyentes,
+                e);
         }
 
-        private void btnSeleccionarExcel_Click(object sender, EventArgs e)
+        private void btnSeleccionarExcel_Click(
+            object sender,
+            EventArgs e)
         {
-            OpenFileDialog dialogo = new OpenFileDialog
-            {
-                Filter = "Archivos Excel (*.xlsx)|*.xlsx"
-            };
+            OpenFileDialog dialogo =
+                new OpenFileDialog
+                {
+                    Filter =
+                        "Archivos Excel (*.xlsx)|*.xlsx"
+                };
 
             if (dialogo.ShowDialog() == DialogResult.OK)
             {
-                rutaExcel = dialogo.FileName;
+                rutaExcel =
+                    dialogo.FileName;
 
-                lblArchivo.Text = rutaExcel;
+                lblArchivo.Text =
+                    rutaExcel;
 
                 txtLog.AppendText(
-                    "Archivo seleccionado: " + rutaExcel + "\r\n");
+                    $"Archivo seleccionado: {rutaExcel}\r\n");
             }
         }
 
-        private void btnCargarExcel_Click(object sender, EventArgs e)
+        private void btnCargarExcel_Click(
+            object sender,
+            EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(rutaExcel))
             {
-                MessageBox.Show("Seleccione un archivo Excel.");
+                MessageBox.Show(
+                    "Seleccione un archivo Excel.");
+
                 return;
             }
 
-            ExcelService excel = new ExcelService();
+            ExcelService excel =
+                new ExcelService();
 
             List<Models.Contribuyente> lista =
                 excel.LeerExcel(rutaExcel);
 
-            DatabaseService db = new DatabaseService();
+            DatabaseService db =
+                new DatabaseService();
 
             db.LimpiarContribuyentes();
+
             db.InsertarContribuyentes(lista);
 
-            dgvContribuyentes.DataSource =
-    db.ObtenerContribuyentes();
-
-            ConfigurarColumnaRutaPdf();
+            grid.ActualizarGrilla(
+                dgvContribuyentes);
 
             txtLog.AppendText(
                 $"Se cargaron {lista.Count} registros.\r\n");
         }
 
-
-        private void EscribirLog(string mensaje)
+        private void EscribirLog(
+            string mensaje)
         {
             txtLog.AppendText(mensaje);
         }
 
-
         private async void btnProbarNavegador_Click(
-         object sender,
-         EventArgs e)
+            object sender,
+            EventArgs e)
         {
             download.IniciarProceso();
 
@@ -168,8 +119,8 @@ namespace F29Downloader
         }
 
         private async void btnIniciarProceso_Click(
-    object sender,
-    EventArgs e)
+            object sender,
+            EventArgs e)
         {
             DatabaseService db =
                 new DatabaseService();
@@ -185,10 +136,9 @@ namespace F29Downloader
                 return;
             }
 
-
-            int segundosEspera = 0;
-
-            if (!int.TryParse(textBox1.Text, out segundosEspera))
+            if (!int.TryParse(
+                    textBox1.Text,
+                    out int segundosEspera))
             {
                 MessageBox.Show(
                     "Ingrese un tiempo de espera válido.");
@@ -198,12 +148,11 @@ namespace F29Downloader
                 return;
             }
 
-
             await download.IniciarDescarga(
-                 lista,
-                 segundosEspera,
-                 EscribirLog,
-                 ActualizarGrilla);
+                lista,
+                segundosEspera,
+                EscribirLog,
+                ActualizarGrilla);
         }
 
         private void ActualizarGrilla()
@@ -214,17 +163,13 @@ namespace F29Downloader
                 return;
             }
 
-            DatabaseService db =
-                new DatabaseService();
-
-            dgvContribuyentes.DataSource = null;
-
-            dgvContribuyentes.DataSource =
-                db.ObtenerContribuyentes();
+            grid.ActualizarGrilla(
+                dgvContribuyentes);
         }
+
         private async void forceClose_Click(
-    object sender,
-    EventArgs e)
+            object sender,
+            EventArgs e)
         {
             EscribirLog(
                 "⚠ Cerrando navegador forzadamente...\r\n");
@@ -234,6 +179,5 @@ namespace F29Downloader
             EscribirLog(
                 "✓ Navegador cerrado.\r\n");
         }
-
     }
 }

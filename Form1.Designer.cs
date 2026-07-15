@@ -58,13 +58,14 @@
             // 
             dgvContribuyentes.AllowUserToAddRows = false;
             dgvContribuyentes.AllowUserToDeleteRows = false;
+            dgvContribuyentes.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             dgvContribuyentes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvContribuyentes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvContribuyentes.Location = new Point(12, 87);
             dgvContribuyentes.MultiSelect = false;
             dgvContribuyentes.Name = "dgvContribuyentes";
             dgvContribuyentes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContribuyentes.Size = new Size(490, 150);
+            dgvContribuyentes.Size = new Size(582, 150);
             dgvContribuyentes.TabIndex = 3;
             // 
             // btnIniciarProceso
@@ -79,12 +80,13 @@
             // 
             // txtLog
             // 
+            txtLog.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             txtLog.Location = new Point(12, 316);
             txtLog.Multiline = true;
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Both;
-            txtLog.Size = new Size(490, 150);
+            txtLog.Size = new Size(582, 150);
             txtLog.TabIndex = 6;
             txtLog.WordWrap = false;
             // 
@@ -183,7 +185,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(514, 481);
+            ClientSize = new Size(606, 481);
             Controls.Add(textBox1);
             Controls.Add(label4);
             Controls.Add(label3);
