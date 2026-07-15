@@ -39,7 +39,7 @@
             btnProbarNavegador = new Button();
             forceClose = new Button();
             label2 = new Label();
-            label3 = new Label();
+            lblEstado = new Label();
             label4 = new Label();
             textBox1 = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvContribuyentes).BeginInit();
@@ -154,23 +154,23 @@
             label2.Size = new Size(0, 15);
             label2.TabIndex = 15;
             // 
-            // label3
+            // lblEstado
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(257, 275);
-            label3.Name = "label3";
-            label3.Size = new Size(51, 15);
-            label3.TabIndex = 16;
-            label3.Text = "0/0 (0%)";
+            lblEstado.AutoSize = true;
+            lblEstado.Location = new Point(152, 247);
+            lblEstado.Name = "lblEstado";
+            lblEstado.Size = new Size(165, 15);
+            lblEstado.TabIndex = 16;
+            lblEstado.Text = "Espera por contribuyente(seg)";
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(150, 246);
+            label4.Location = new Point(262, 273);
             label4.Name = "label4";
-            label4.Size = new Size(182, 15);
+            label4.Size = new Size(51, 15);
             label4.TabIndex = 17;
-            label4.Text = "Espera entre contribuyentes (seg)";
+            label4.Text = "0/0 (0%)";
             // 
             // textBox1
             // 
@@ -188,7 +188,7 @@
             ClientSize = new Size(606, 481);
             Controls.Add(textBox1);
             Controls.Add(label4);
-            Controls.Add(label3);
+            Controls.Add(lblEstado);
             Controls.Add(label2);
             Controls.Add(forceClose);
             Controls.Add(btnProbarNavegador);
@@ -219,7 +219,7 @@
         private Button btnProbarNavegador;
         private Button forceClose;
         private Label label2;
-        private Label label3;
+        private Label lblEstado;
         private Label label4;
         private TextBox textBox1;
     }

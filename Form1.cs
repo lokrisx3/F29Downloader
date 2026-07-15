@@ -119,8 +119,8 @@ namespace F29Downloader
         }
 
         private async void btnIniciarProceso_Click(
-            object sender,
-            EventArgs e)
+    object sender,
+    EventArgs e)
         {
             DatabaseService db =
                 new DatabaseService();
@@ -136,9 +136,11 @@ namespace F29Downloader
                 return;
             }
 
+            int segundosEspera = 0;
+
             if (!int.TryParse(
-                    textBox1.Text,
-                    out int segundosEspera))
+                textBox1.Text,
+                out segundosEspera))
             {
                 MessageBox.Show(
                     "Ingrese un tiempo de espera válido.");
@@ -148,11 +150,15 @@ namespace F29Downloader
                 return;
             }
 
+            progressBarProceso.Value = 0;
+
             await download.IniciarDescarga(
                 lista,
                 segundosEspera,
                 EscribirLog,
-                ActualizarGrilla);
+                ActualizarGrilla,
+                ActualizarEstado,
+                ActualizarProgreso);
         }
 
         private void ActualizarGrilla()
@@ -178,6 +184,50 @@ namespace F29Downloader
 
             EscribirLog(
                 "✓ Navegador cerrado.\r\n");
+        }
+
+        private void ActualizarEstado(
+    string texto)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(() =>
+                    ActualizarEstado(texto));
+
+                return;
+            }
+
+            label4.Text = texto;
+        }
+
+        private void ActualizarProgreso(
+    int actual,
+    int total)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(() =>
+                    ActualizarProgreso(
+                        actual,
+                        total));
+
+                return;
+            }
+
+
+            if (total <= 0)
+                return;
+
+
+            progressBarProceso.Minimum = 0;
+
+            progressBarProceso.Maximum = total;
+
+
+            progressBarProceso.Value =
+                Math.Min(
+                    actual,
+                    total);
         }
     }
 }

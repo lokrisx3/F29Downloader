@@ -416,44 +416,90 @@ namespace F29Downloader.Services
         }
 
         public async Task IniciarDescarga(
-            List<Contribuyente> lista,
-            int segundosEspera,
-            Action<string> escribirLog,
-            Action actualizarGrilla)
+    List<Contribuyente> lista,
+    int segundosEspera,
+    Action<string> escribirLog,
+    Action actualizarGrilla,
+    Action<string> actualizarEstado,
+    Action<int, int> actualizarProgreso)
         {
             IniciarProceso();
 
             escribirLog(
                 "\r\n===== Inicio del proceso =====\r\n");
 
-            for (int i = 0; i < lista.Count; i++)
+            int total = lista.Count;
+
+            for (int i = 0; i < total; i++)
             {
+                int actual = i + 1;
+
+                int porcentaje =
+                    (actual * 100) / total;
+
+
+                actualizarEstado(
+                    $"Procesando {actual} de {total} ({porcentaje}%)");
+
+
+                actualizarProgreso(
+                    actual,
+                    total);
+
+
                 await ProcesarContribuyente(
                     lista[i],
                     escribirLog,
                     actualizarGrilla);
 
+
                 if (ProcesoCancelado())
                 {
+                    actualizarEstado(
+                        $"Proceso cancelado ({actual}/{total})");
+
+
+                    actualizarProgreso(
+                        actual,
+                        total);
+
+
                     escribirLog(
                         "\r\n⚠ Proceso cancelado por usuario.\r\n");
 
                     break;
                 }
 
-                if (i < lista.Count - 1 &&
+
+                if (i < total - 1 &&
                     segundosEspera > 0)
                 {
+                    actualizarEstado(
+                        $"Esperando {segundosEspera} segundos...");
+
+
                     escribirLog(
                         $"Esperando {segundosEspera} segundos...\r\n");
 
+
                     await Task.Delay(
-                        TimeSpan.FromSeconds(segundosEspera));
+                        TimeSpan.FromSeconds(
+                            segundosEspera));
                 }
             }
 
+
+            actualizarEstado(
+                $"Proceso finalizado ({total}/{total})");
+
+
+            actualizarProgreso(
+                total,
+                total);
+
+
             escribirLog(
-                "\r\n===== Proceso finalizado =====\r\n");
+                "\r\nProceso finalizado.\r\n");
         }
     }
 }
