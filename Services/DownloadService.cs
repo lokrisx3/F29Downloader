@@ -88,14 +88,48 @@ namespace F29Downloader.Services
     Action<string> escribirLog,
     Action actualizarGrilla)
         {
+            DatabaseService db =
+                new DatabaseService();
+
+            // Verificar si el PDF ya existe
+            string rutaPdfExistente;
+
+            if (ExistePdf(
+                contribuyente,
+                out rutaPdfExistente))
+            {
+                contribuyente.RutaPdf =
+                    rutaPdfExistente;
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Finalizado",
+                    "PDF ya existe",
+                    actualizarGrilla);
+
+                escribirLog(
+                    "\r\n" +
+                    "--------------------------------------------------\r\n" +
+                    "Procesando contribuyente\r\n" +
+                    $"RUT     : {contribuyente.Rut}\r\n" +
+                    $"Periodo : {contribuyente.Periodo}\r\n" +
+                    "--------------------------------------------------\r\n");
+
+                escribirLog(
+                    "✓ El PDF ya existe.\r\n");
+
+                escribirLog(
+                    "✓ Se omite la descarga.\r\n");
+
+                return;
+            }
+
             siiActual =
                 new SiiService();
 
             SiiService sii =
                 siiActual;
-
-            DatabaseService db =
-                new DatabaseService();
 
             IPage? pagina = null;
 
@@ -500,6 +534,27 @@ namespace F29Downloader.Services
 
             escribirLog(
                 "\r\nProceso finalizado.\r\n");
+        }
+
+        private bool ExistePdf(
+    Contribuyente contribuyente,
+    out string rutaPdf)
+        {
+            string nombrePdf =
+                ConfigService.ObtenerNombrePdf(
+                    contribuyente);
+
+            string carpetaContribuyente =
+                Path.Combine(
+                    ConfigService.DownloadsPath,
+                    contribuyente.Rut);
+
+            rutaPdf =
+                Path.Combine(
+                    carpetaContribuyente,
+                    nombrePdf);
+
+            return File.Exists(rutaPdf);
         }
     }
 }

@@ -326,3 +326,78 @@ Proyecto personal de automatización para descarga masiva de Formularios 29.
 18 - Manejo completo de errores, reintentos y páginas no disponibles. 
 19 - Ejecución con navegador oculto y estado del navegador. 
 20 - Refactorización general.
+
+
+
+Etapa 6: Robustez y estabilidad
+6.1 Detección de PDF existente
+Verificar si el PDF ya fue descargado antes de iniciar sesión.
+Evitar procesamiento innecesario.
+Marcar estado como "Finalizado" o "PDF existente".
+6.2 Reintentos automáticos
+Máximo 2 reintentos por contribuyente.
+Espera entre intentos.
+Registrar cantidad de intentos realizados.
+6.3 Mejor manejo de errores de inicio de sesión
+Detectar contraseña incorrecta.
+Detectar mayúsculas activadas.
+Detectar usuario bloqueado.
+Guardar mensaje específico en la columna Mensaje.
+6.4 Validación del archivo Excel
+Detectar RUT duplicados.
+Detectar RUT + período duplicados.
+Mostrar aviso antes de cargar.
+Permitir continuar o cancelar.
+6.5 Detección de contribuyentes ya procesados
+Revisar registros existentes en la base de datos.
+Preguntar si desea volver a descargar.
+Evitar descargas repetidas.
+6.6 Mejor manejo de errores SII
+Detectar:
+Timeout.
+Sesión expirada.
+Página no disponible.
+Popup PDF no abierto.
+Error al descargar PDF.
+Registrar mensajes claros.
+6.7 Mejoras de registro y auditoría
+Crear historial de ejecuciones.
+Guardar:
+Fecha inicio.
+Fecha término.
+Cantidad procesada.
+Errores.
+Cancelaciones.
+Generar archivos de log.
+Etapa 7: Distribución profesional
+7.1 Preparar versión Release
+Compilación final.
+Eliminación de archivos innecesarios.
+Configuración de versión.
+7.2 Publicar aplicación
+Crear ejecutable distribuible.
+Definir instalación:
+Dependiente del framework.
+Incluyendo runtime .NET.
+7.3 Instalador
+Crear instalador profesional.
+Acceso directo en escritorio.
+Carpeta de instalación.
+Desinstalador.
+7.4 Seguridad
+Firmar aplicación (opcional).
+Proteger archivos de configuración.
+Manejo seguro de credenciales.
+Evitar exposición de claves en archivos.
+7.5 Configuración inicial
+Crear estructura automática:
+F29Downloader
+│
+├── Data
+├── Downloads
+├── Logs
+└── Config
+7.6 Mantenimiento y actualización
+Sistema de versiones.
+Copias de seguridad de base de datos.
+Preparar futuras actualizaciones.
