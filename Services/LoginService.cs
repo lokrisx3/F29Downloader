@@ -7,8 +7,8 @@ namespace F29Downloader.Services
     public class LoginService
     {
         public async Task<bool> IniciarSesion(
-            IPage pagina,
-            Contribuyente contribuyente)
+    IPage pagina,
+    Contribuyente contribuyente)
         {
             await pagina.FillAsync(
                 "#rutcntr",
@@ -21,21 +21,45 @@ namespace F29Downloader.Services
             await pagina.ClickAsync(
                 "#bt_ingresar");
 
-            // Esperar unos segundos a que responda el SII
-            await pagina.WaitForLoadStateAsync(
-                LoadState.NetworkIdle);
 
-            // Si sigue existiendo el botón ingresar,
-            // significa que el login falló.
-            bool sigueEnLogin =
-                await pagina.Locator("#bt_ingresar").IsVisibleAsync();
+            try
+            {
+                await pagina.WaitForTimeoutAsync(3000);
 
-            if (sigueEnLogin)
+
+                // Si el botón ingresar sigue visible,
+                // el login no fue realizado.
+                bool sigueEnLogin =
+                    await pagina
+                    .Locator("#bt_ingresar")
+                    .IsVisibleAsync();
+
+
+                if (sigueEnLogin)
+                {
+                    return false;
+                }
+
+
+                // Validación adicional:
+                // verificar que realmente salió del login.
+
+                string url =
+                    pagina.Url;
+
+
+                if (url.Contains("AUT2000"))
+                {
+                    return false;
+                }
+
+
+                return true;
+            }
+            catch
             {
                 return false;
             }
-
-            return true;
         }
     }
 }

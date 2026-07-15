@@ -1,4 +1,6 @@
-﻿using F29Downloader.Services;
+﻿using DocumentFormat.OpenXml.Office2010.ExcelAc;
+using F29Downloader.Models;
+using F29Downloader.Services;
 
 namespace F29Downloader
 {
@@ -25,6 +27,21 @@ namespace F29Downloader
                 dgvContribuyentes_CellContentClick;
 
             
+        }
+
+        private bool ConsultarReintento(
+    Contribuyente contribuyente)
+        {
+            DialogResult resultado =
+                MessageBox.Show(
+                    $"No fue posible iniciar sesión para:\r\n\r\n" +
+                    $"{contribuyente.Rut}\r\n\r\n" +
+                    "¿Desea intentar nuevamente?",
+                    "Inicio de sesión",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+            return resultado == DialogResult.Yes;
         }
 
         private void dgvContribuyentes_CellContentClick(
@@ -115,7 +132,8 @@ namespace F29Downloader
             await download.ProcesarContribuyente(
                 contribuyente,
                 EscribirLog,
-                ActualizarGrilla);
+                ActualizarGrilla,
+                ConsultarReintento);
         }
 
         private async void btnIniciarProceso_Click(
@@ -158,7 +176,8 @@ namespace F29Downloader
                 EscribirLog,
                 ActualizarGrilla,
                 ActualizarEstado,
-                ActualizarProgreso);
+                ActualizarProgreso,
+                ConsultarReintento);
         }
 
         private void ActualizarGrilla()

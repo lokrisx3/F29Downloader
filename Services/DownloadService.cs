@@ -7,6 +7,7 @@ namespace F29Downloader.Services
     {
         private SiiService? siiActual;
         private bool cancelado = false;
+        private const int MaximoIntentosLogin = 2;
         public async Task ForzarCierre()
         {
             cancelado = true;
@@ -86,44 +87,11 @@ namespace F29Downloader.Services
         public async Task ProcesarContribuyente(
     Contribuyente contribuyente,
     Action<string> escribirLog,
-    Action actualizarGrilla)
+    Action actualizarGrilla,
+    Func<Contribuyente, bool> consultarReintento)
         {
             DatabaseService db =
                 new DatabaseService();
-
-            // Verificar si el PDF ya existe
-            string rutaPdfExistente;
-
-            if (ExistePdf(
-                contribuyente,
-                out rutaPdfExistente))
-            {
-                contribuyente.RutaPdf =
-                    rutaPdfExistente;
-
-                CambiarEstado(
-                    db,
-                    contribuyente,
-                    "Finalizado",
-                    "PDF ya existe",
-                    actualizarGrilla);
-
-                escribirLog(
-                    "\r\n" +
-                    "--------------------------------------------------\r\n" +
-                    "Procesando contribuyente\r\n" +
-                    $"RUT     : {contribuyente.Rut}\r\n" +
-                    $"Periodo : {contribuyente.Periodo}\r\n" +
-                    "--------------------------------------------------\r\n");
-
-                escribirLog(
-                    "✓ El PDF ya existe.\r\n");
-
-                escribirLog(
-                    "✓ Se omite la descarga.\r\n");
-
-                return;
-            }
 
             siiActual =
                 new SiiService();
@@ -143,6 +111,43 @@ namespace F29Downloader.Services
 
             try
             {
+                //====================================================
+                // Verificar si el PDF ya existe
+                //====================================================
+
+                string rutaPdfExistente;
+
+                if (ExistePdf(
+                    contribuyente,
+                    out rutaPdfExistente))
+                {
+                    contribuyente.RutaPdf =
+                        rutaPdfExistente;
+
+                    CambiarEstado(
+                        db,
+                        contribuyente,
+                        "Finalizado",
+                        "PDF ya existe",
+                        actualizarGrilla);
+
+                    escribirLog(
+                        "\r\n" +
+                        "--------------------------------------------------\r\n" +
+                        "Procesando contribuyente\r\n" +
+                        $"RUT     : {contribuyente.Rut}\r\n" +
+                        $"Periodo : {contribuyente.Periodo}\r\n" +
+                        "--------------------------------------------------\r\n");
+
+                    escribirLog(
+                        "✓ El PDF ya existe.\r\n");
+
+                    escribirLog(
+                        "✓ Se omite la descarga.\r\n");
+
+                    return;
+                }
+
                 contribuyente.Intentos++;
 
                 CambiarEstado(
@@ -152,12 +157,6 @@ namespace F29Downloader.Services
                     "",
                     actualizarGrilla);
 
-                pagina =
-                    await sii.AbrirLogin();
-
-                LoginService login =
-                    new LoginService();
-
                 escribirLog(
                     "\r\n" +
                     "--------------------------------------------------\r\n" +
@@ -166,46 +165,34 @@ namespace F29Downloader.Services
                     $"Periodo : {contribuyente.Periodo}\r\n" +
                     "--------------------------------------------------\r\n");
 
-                string mes =
-                    ObtenerNombreMes(
-                        contribuyente.Periodo);
-
-                bool resultado =
-                    await login.IniciarSesion(
-                        pagina,
-                        contribuyente);
-
-                if (!resultado)
-                {
-                    CambiarEstado(
-                        db,
+                pagina =
+                    await RealizarLoginConReintentos(
+                        sii,
                         contribuyente,
-                        "Error",
-                        "Error al iniciar sesión",
-                        actualizarGrilla);
+                        db,
+                        escribirLog,
+                        actualizarGrilla,
+                        consultarReintento);
 
+                if (pagina == null)
+                {
                     escribirLog(
-                        "✗ Error al iniciar sesión.\r\n");
+                        "⚠ Contribuyente omitido.\r\n");
 
                     return;
                 }
 
-                CambiarEstado(
-                    db,
-                    contribuyente,
-                    "Autenticado",
-                    "Inicio de sesión exitoso",
-                    actualizarGrilla);
-
-                escribirLog(
-                    "✓ Inicio de sesión exitoso.\r\n");
+                string mes =
+                    ObtenerNombreMes(
+                        contribuyente.Periodo);
 
                 VerificarCancelacion(escribirLog);
 
                 escribirLog(
                     "⏳ Abriendo consulta F29...\r\n");
 
-                await sii.IrAConsultaF29(pagina);
+                await sii.IrAConsultaF29(
+                    pagina);
 
                 CambiarEstado(
                     db,
@@ -222,7 +209,8 @@ namespace F29Downloader.Services
                 escribirLog(
                     "⏳ Seleccionando Formulario 29...\r\n");
 
-                await sii.SeleccionarFormulario29(pagina);
+                await sii.SeleccionarFormulario29(
+                    pagina);
 
                 CambiarEstado(
                     db,
@@ -244,11 +232,11 @@ namespace F29Downloader.Services
                     mes);
 
                 CambiarEstado(
-                db, 
-                contribuyente,
-                $"Mes {mes}",
-                $"Período {contribuyente.Periodo}",
-                actualizarGrilla);
+                    db,
+                    contribuyente,
+                    $"Mes {mes}",
+                    $"Período {contribuyente.Periodo}",
+                    actualizarGrilla);
 
                 escribirLog(
                     $"✓ Mes {mes} seleccionado.\r\n");
@@ -258,7 +246,8 @@ namespace F29Downloader.Services
                 escribirLog(
                     "⏳ Buscando datos ingresados...\r\n");
 
-                await sii.BuscarDatosIngresados(pagina);
+                await sii.BuscarDatosIngresados(
+                    pagina);
 
                 CambiarEstado(
                     db,
@@ -273,7 +262,8 @@ namespace F29Downloader.Services
                 escribirLog(
                     "⏳ Abriendo formulario...\r\n");
 
-                await sii.AbrirFormulario(pagina);
+                await sii.AbrirFormulario(
+                    pagina);
 
                 CambiarEstado(
                     db,
@@ -304,13 +294,11 @@ namespace F29Downloader.Services
                 escribirLog(
                     "✓ PDF abierto.\r\n");
 
-                
-
                 escribirLog(
                     "⏳ Descargando PDF...\r\n");
 
                 string urlPdf =
-                    paginaPdf.Url;
+    paginaPdf.Url;
 
                 IBrowserContext contexto =
                     sii.ObtenerContexto();
@@ -338,7 +326,6 @@ namespace F29Downloader.Services
                     Path.Combine(
                         carpetaContribuyente,
                         nombrePdf);
-                
 
                 bool pdfGuardado =
                     await pdf.GuardarPdfDesdeUrl(
@@ -414,12 +401,14 @@ namespace F29Downloader.Services
             {
                 try
                 {
-                    if (pagina != null)
+                    if (pagina != null &&
+                        !pagina.IsClosed)
                     {
                         escribirLog(
                             "⏳ Cerrando sesión SII...\r\n");
 
-                        await sii.CerrarSesion(pagina);
+                        await sii.CerrarSesion(
+                            pagina);
 
                         escribirLog(
                             "✓ Sesión SII cerrada.\r\n");
@@ -450,12 +439,13 @@ namespace F29Downloader.Services
         }
 
         public async Task IniciarDescarga(
-    List<Contribuyente> lista,
-    int segundosEspera,
-    Action<string> escribirLog,
-    Action actualizarGrilla,
-    Action<string> actualizarEstado,
-    Action<int, int> actualizarProgreso)
+            List<Contribuyente> lista,
+            int segundosEspera,
+            Action<string> escribirLog,
+            Action actualizarGrilla,
+            Action<string> actualizarEstado,
+            Action<int, int> actualizarProgreso,
+            Func<Contribuyente, bool> consultarReintento)
         {
             IniciarProceso();
 
@@ -482,9 +472,10 @@ namespace F29Downloader.Services
 
 
                 await ProcesarContribuyente(
-                    lista[i],
-                    escribirLog,
-                    actualizarGrilla);
+                lista[i],
+                escribirLog,
+                actualizarGrilla,
+                consultarReintento);
 
 
                 if (ProcesoCancelado())
@@ -555,6 +546,101 @@ namespace F29Downloader.Services
                     nombrePdf);
 
             return File.Exists(rutaPdf);
+        }
+
+        private async Task<IPage?> RealizarLoginConReintentos(
+    SiiService sii,
+    Contribuyente contribuyente,
+    DatabaseService db,
+    Action<string> escribirLog,
+    Action actualizarGrilla,
+    Func<Contribuyente, bool> consultarReintento)
+        {
+            while (true)
+            {
+                IPage pagina =
+                    await sii.AbrirLogin();
+
+                LoginService login =
+                    new LoginService();
+
+                bool loginCorrecto = false;
+
+                for (int intento = 1;
+                     intento <= MaximoIntentosLogin;
+                     intento++)
+                {
+                    escribirLog(
+                        $"⏳ Intento de inicio de sesión ({intento}/{MaximoIntentosLogin})...\r\n");
+
+                    loginCorrecto =
+                        await login.IniciarSesion(
+                            pagina,
+                            contribuyente);
+
+                    if (loginCorrecto)
+                    {
+                        CambiarEstado(
+                            db,
+                            contribuyente,
+                            "Autenticado",
+                            "Inicio de sesión exitoso",
+                            actualizarGrilla);
+
+                        escribirLog(
+                            "✓ Inicio de sesión exitoso.\r\n");
+
+                        return pagina;
+                    }
+
+                    escribirLog(
+                        $"⚠ Falló el intento {intento}.\r\n");
+
+                    await pagina.CloseAsync();
+
+                    if (intento < MaximoIntentosLogin)
+                    {
+                        escribirLog(
+                            "⏳ Reintentando automáticamente...\r\n");
+
+                        await Task.Delay(2000);
+
+                        pagina =
+                            await sii.AbrirLogin();
+
+                        login =
+                            new LoginService();
+                    }
+                }
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    "Error",
+                    "No fue posible iniciar sesión",
+                    actualizarGrilla);
+
+                bool volverIntentar =
+                    consultarReintento(contribuyente);
+
+                if (!volverIntentar)
+                {
+                    CambiarEstado(
+                        db,
+                        contribuyente,
+                        "Omitido",
+                        "Omitido por usuario",
+                        actualizarGrilla);
+                    if (!pagina.IsClosed)
+                    {
+                        await pagina.CloseAsync();
+                    }
+                    return null;
+                }
+
+                escribirLog(
+                    "⏳ Nuevo intento solicitado por el usuario...\r\n");
+            }
         }
     }
 }
