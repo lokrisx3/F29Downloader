@@ -105,6 +105,27 @@ namespace F29Downloader.Services
                 mes);
             await pagina.WaitForTimeoutAsync(500);
         }
+
+        public async Task SeleccionarAnio(
+            IPage pagina,
+            string anio)
+                {
+                    await pagina.EvaluateAsync(
+                        @"(anio) => {
+
+            const combo =
+                document.querySelectorAll('#item-form select')[1];
+
+            combo.value = anio;
+
+            combo.dispatchEvent(
+                new Event('change', { bubbles: true }));
+
+        }",
+                anio);
+
+            await pagina.WaitForTimeoutAsync(500);
+        }
         public async Task BuscarDatosIngresados(IPage pagina)
         {
             var boton = pagina.Locator("button", new()

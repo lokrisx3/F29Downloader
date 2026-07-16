@@ -201,6 +201,9 @@ namespace F29Downloader.Services
                     ObtenerNombreMes(
                         contribuyente.Periodo);
 
+                string anio =
+                    contribuyente.Periodo.Split('/')[1];
+
                 VerificarCancelacion(escribirLog);
 
                 escribirLog(
@@ -241,6 +244,20 @@ namespace F29Downloader.Services
 
                 escribirLog(
                     $"⏳ Seleccionando mes {mes}...\r\n");
+
+                await sii.SeleccionarAnio(
+                    pagina,
+                    anio);
+
+                CambiarEstado(
+                    db,
+                    contribuyente,
+                    $"Año {anio}",
+                    $"Período {contribuyente.Periodo}",
+                    actualizarGrilla);
+
+                escribirLog(
+                    $"✓ Año {anio} seleccionado.\r\n");
 
                 await sii.SeleccionarMes(
                     pagina,
