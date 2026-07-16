@@ -78,8 +78,8 @@ namespace F29Downloader
         }
 
         private void btnCargarExcel_Click(
-            object sender,
-            EventArgs e)
+    object sender,
+    EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(rutaExcel))
             {
@@ -95,12 +95,28 @@ namespace F29Downloader
             List<Models.Contribuyente> lista =
                 excel.LeerExcel(rutaExcel);
 
+            if (excel.Errores.Count > 0)
+            {
+                MessageBox.Show(
+                    "Se encontraron errores en el archivo Excel.\r\n\r\n" +
+                    string.Join(
+                        "\r\n",
+                        excel.Errores) +
+                    "\r\n\r\nCorrija el archivo y vuelva a cargar el Excel.",
+                    "Validación del Excel",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
             DatabaseService db =
                 new DatabaseService();
 
             db.LimpiarContribuyentes();
 
-            db.InsertarContribuyentes(lista);
+            db.InsertarContribuyentes(
+                lista);
 
             grid.ActualizarGrilla(
                 dgvContribuyentes);
