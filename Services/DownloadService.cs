@@ -51,17 +51,7 @@ namespace F29Downloader.Services
 
             actualizarGrilla();
         }
-        private bool FueOmitidoPorLogin(
-    List<Contribuyente> lista,
-    Contribuyente actual)
-        {
-            return lista.Any(x =>
-                x.Rut == actual.Rut &&
-                x.Estado == "Omitido" &&
-                x.Mensaje.Contains(
-                    "login",
-                    StringComparison.OrdinalIgnoreCase));
-        }
+        
 
         private void VerificarCancelacion(
             Action<string> escribirLog)

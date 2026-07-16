@@ -107,21 +107,28 @@ namespace F29Downloader.Services
         }
 
         public async Task SeleccionarAnio(
-            IPage pagina,
-            string anio)
-                {
-                    await pagina.EvaluateAsync(
-                        @"(anio) => {
+                IPage pagina,
+                string anio)
+                    {
+                        await pagina.EvaluateAsync(
+                            @"(anio) => {
 
-            const combo =
-                document.querySelectorAll('#item-form select')[1];
+                const combo =
+                    document.querySelectorAll('#item-form select')[1];
 
-            combo.value = anio;
+                const opcion =
+                    Array.from(combo.options)
+                        .find(o => o.text.trim() === anio);
 
-            combo.dispatchEvent(
-                new Event('change', { bubbles: true }));
+                if (!opcion)
+                    throw new Error('Año inválido: ' + anio);
 
-        }",
+                combo.value = opcion.value;
+
+                combo.dispatchEvent(
+                    new Event('change', { bubbles: true }));
+
+            }",
                 anio);
 
             await pagina.WaitForTimeoutAsync(500);
