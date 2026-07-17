@@ -5,7 +5,10 @@ namespace F29Downloader.Services
     public static class ConfigService
     {
         public static string BasePath =>
-            AppContext.BaseDirectory;
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.MyDocuments),
+                "F29Downloader");
 
 
         public static string DataPath =>

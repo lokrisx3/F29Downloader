@@ -65,7 +65,7 @@
             dgvContribuyentes.MultiSelect = false;
             dgvContribuyentes.Name = "dgvContribuyentes";
             dgvContribuyentes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContribuyentes.Size = new Size(582, 150);
+            dgvContribuyentes.Size = new Size(711, 150);
             dgvContribuyentes.TabIndex = 3;
             // 
             // btnIniciarProceso
@@ -86,7 +86,7 @@
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Both;
-            txtLog.Size = new Size(582, 150);
+            txtLog.Size = new Size(711, 150);
             txtLog.TabIndex = 6;
             txtLog.WordWrap = false;
             // 
@@ -178,14 +178,14 @@
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(26, 23);
             textBox1.TabIndex = 18;
-            textBox1.Text = "30";
+            textBox1.Text = "10";
             textBox1.TextAlign = HorizontalAlignment.Right;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(606, 481);
+            ClientSize = new Size(735, 481);
             Controls.Add(textBox1);
             Controls.Add(label4);
             Controls.Add(label);

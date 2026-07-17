@@ -12,6 +12,11 @@ namespace F29Downloader.Services
 
         public async Task<IPage> CrearPagina()
         {
+            Environment.SetEnvironmentVariable(
+                "PLAYWRIGHT_BROWSERS_PATH",
+                Path.Combine(
+                    AppContext.BaseDirectory,
+                    "ms-playwright"));
             string carpetaDescargas =
                 Path.Combine(
                     AppContext.BaseDirectory,
