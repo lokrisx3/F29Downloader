@@ -30,6 +30,7 @@ Se pueden utilizar estas variables en atributos, URLs y scripts:
 | `{rut}` | RUT ingresado para iniciar sesión. |
 | `{clave}` | Contraseña ingresada para iniciar sesión. |
 | `{periodo}` | Período solicitado, por ejemplo `05/2025`. |
+| `{periodoArchivo}` | Período apto para nombres de archivo, por ejemplo `05_2025`. |
 | `{anio}` | Año extraído del período, por ejemplo `2025`. |
 | `{mes}` | Nombre del mes extraído del período, por ejemplo `Mayo`. |
 

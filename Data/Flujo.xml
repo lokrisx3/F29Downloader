@@ -7,7 +7,7 @@
 <Flujo nombre="Descarga de Formulario 29" version="1.0">
   <Configuracion>
     <ReintentosLogin maximos="2" esperaMilisegundos="2000" />
-    <Descargas carpeta="Downloads\{rut}" archivo="F29_{rut}_{periodo}.pdf" />
+    <Descargas carpeta="Downloads\{rut}" archivo="F29_{rut}_{periodoArchivo}.pdf" />
   </Configuracion>
 
   <Pasos>
@@ -57,7 +57,7 @@ combo.dispatchEvent(new Event('change', { bubbles: true }));
     <Paso orden="20" tipo="esperarPopup" />
     <Paso orden="21" tipo="click" selector="button" texto="Formulario Compacto" />
     <Paso orden="22" tipo="esperar" milisegundos="500" />
-    <Paso orden="23" tipo="guardarPdfPopup" destino="Downloads\{rut}\F29_{rut}_{periodo}.pdf" />
+    <Paso orden="23" tipo="guardarPdfPopup" destino="Downloads\{rut}\F29_{rut}_{periodoArchivo}.pdf" />
     <Paso orden="24" tipo="cerrarPopup" />
     <Paso orden="25" tipo="navegar" url="https://zeusr.sii.cl/cgi_AUT2000/autTermino.cgi" esperarHasta="NetworkIdle" />
     <Paso orden="26" tipo="esperar" milisegundos="1000" />

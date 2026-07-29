@@ -14,6 +14,8 @@ namespace F29Downloader
         private readonly GridService grid =
             new GridService();
 
+        private FlujoXmlService? flujoXmlActivo;
+
         public Form1()
         {
             InitializeComponent();
@@ -150,6 +152,26 @@ namespace F29Downloader
                     Periodo = "05/2025"
                 };
 
+            try
+            {
+                flujoXmlActivo = new FlujoXmlService();
+                await flujoXmlActivo.EjecutarAsync(contribuyente, EscribirLog);
+                return;
+            }
+            catch (FlujoXmlNoDisponibleException ex)
+            {
+                EscribirLog($"⚠ {ex.Message} Se usará el flujo integrado.\r\n");
+            }
+            catch (Exception ex)
+            {
+                EscribirLog($"✗ Error ejecutando el flujo XML: {ex.Message}\r\n");
+                return;
+            }
+            finally
+            {
+                flujoXmlActivo = null;
+            }
+
             await download.ProcesarContribuyente(
                 contribuyente,
                 EscribirLog,
@@ -222,6 +244,11 @@ namespace F29Downloader
 
 
             download.ProcesoCancelado();
+
+            if (flujoXmlActivo != null)
+            {
+                await flujoXmlActivo.ForzarCierreAsync();
+            }
 
 
             await download.ForzarCierre();
