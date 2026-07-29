@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ejemplo del flujo actual de descarga de F29.
+  Variables disponibles: {rut}, {clave}, {periodo}, {anio} y {mes}.
+  Los pasos de tipo "script" se ejecutan en el contexto de la página actual.
+-->
+<Flujo nombre="Descarga de Formulario 29" version="1.0">
+  <Configuracion>
+    <ReintentosLogin maximos="2" esperaMilisegundos="2000" />
+    <Descargas carpeta="Downloads\{rut}" archivo="F29_{rut}_{periodo}.pdf" />
+  </Configuracion>
+
+  <Pasos>
+    <Paso orden="1" tipo="navegar"
+          url="https://zeusr.sii.cl//AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi"
+          esperarHasta="NetworkIdle" />
+    <Paso orden="2" tipo="rellenar" selector="#rutcntr" valor="{rut}" />
+    <Paso orden="3" tipo="rellenar" selector="#clave" valor="{clave}" ocultarValor="true" />
+    <Paso orden="4" tipo="click" selector="#bt_ingresar" />
+    <Paso orden="5" tipo="esperar" milisegundos="3000" />
+    <Paso orden="6" tipo="validar" condicion="urlNoContiene('AUT2000')" mensajeError="No fue posible iniciar sesión." />
+
+    <Paso orden="7" tipo="navegar"
+          url="https://www4.sii.cl/rfiInternet/consulta/index.html#rfiSelFormularioPeriodo"
+          esperarHasta="DOMContentLoaded" />
+    <Paso orden="8" tipo="esperar" milisegundos="5000" />
+    <Paso orden="9" tipo="seleccionar" selector="select.gwt-ListBox" valor="0" descripcion="Formulario 29" />
+    <Paso orden="10" tipo="esperar" milisegundos="5000" />
+
+    <Paso orden="11" tipo="script" descripcion="Seleccionar año">
+      <Codigo><![CDATA[
+const combo = document.querySelectorAll('#item-form select')[1];
+const opcion = Array.from(combo.options).find(o => o.text.trim() === '{anio}');
+if (!opcion) throw new Error('Año inválido: {anio}');
+combo.value = opcion.value;
+combo.dispatchEvent(new Event('change', { bubbles: true }));
+      ]]></Codigo>
+    </Paso>
+    <Paso orden="12" tipo="esperar" milisegundos="500" />
+
+    <Paso orden="13" tipo="script" descripcion="Seleccionar mes">
+      <Codigo><![CDATA[
+const combo = document.querySelectorAll('#item-form select')[2];
+const meses = { Enero: 0, Febrero: 1, Marzo: 2, Abril: 3, Mayo: 4, Junio: 5,
+  Julio: 6, Agosto: 7, Septiembre: 8, Octubre: 9, Noviembre: 10, Diciembre: 11 };
+if (meses['{mes}'] === undefined) throw new Error('Mes inválido: {mes}');
+combo.value = meses['{mes}'];
+combo.dispatchEvent(new Event('change', { bubbles: true }));
+      ]]></Codigo>
+    </Paso>
+    <Paso orden="14" tipo="esperar" milisegundos="500" />
+    <Paso orden="15" tipo="esperarVisible" selector="button" texto="Buscar Datos Ingresados" />
+    <Paso orden="16" tipo="click" selector="button" texto="Buscar Datos Ingresados" />
+    <Paso orden="17" tipo="esperar" milisegundos="500" />
+    <Paso orden="18" tipo="click" selector="a[href='#rfiSelFormularioPeriodo']" />
+    <Paso orden="19" tipo="esperar" milisegundos="500" />
+    <Paso orden="20" tipo="esperarPopup" />
+    <Paso orden="21" tipo="click" selector="button" texto="Formulario Compacto" />
+    <Paso orden="22" tipo="esperar" milisegundos="500" />
+    <Paso orden="23" tipo="guardarPdfPopup" destino="Downloads\{rut}\F29_{rut}_{periodo}.pdf" />
+    <Paso orden="24" tipo="cerrarPopup" />
+    <Paso orden="25" tipo="navegar" url="https://zeusr.sii.cl/cgi_AUT2000/autTermino.cgi" esperarHasta="NetworkIdle" />
+    <Paso orden="26" tipo="esperar" milisegundos="1000" />
+  </Pasos>
+</Flujo>

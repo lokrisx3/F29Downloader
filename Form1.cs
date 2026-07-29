@@ -135,13 +135,18 @@ namespace F29Downloader
             object sender,
             EventArgs e)
         {
+            using CredencialesDialog dialogo = new();
+
+            if (dialogo.ShowDialog(this) != DialogResult.OK)
+                return;
+
             download.IniciarProceso();
 
             Models.Contribuyente contribuyente =
                 new Models.Contribuyente
                 {
-                    Rut = "76869422-2",
-                    Clave = "Patricio2026@",
+                    Rut = dialogo.Rut,
+                    Clave = dialogo.Clave,
                     Periodo = "05/2025"
                 };
 
