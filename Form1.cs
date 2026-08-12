@@ -6,6 +6,7 @@ namespace F29Downloader
 {
     public partial class Form1 : Form
     {
+        private readonly bool modoDemo = true;
         private string rutaExcel = "";
 
         private readonly DownloadService download =
@@ -25,10 +26,37 @@ namespace F29Downloader
 
             db.CrearBaseDatos();
 
+            ConfigurarModoDemo();
+
             dgvContribuyentes.CellContentClick +=
                 dgvContribuyentes_CellContentClick;
 
             
+        }
+
+        private void ConfigurarModoDemo()
+        {
+            if (!modoDemo)
+                return;
+
+            AplicarEstiloDeshabilitado(btnSeleccionarExcel);
+            AplicarEstiloDeshabilitado(btnCargarExcel);
+            AplicarEstiloDeshabilitado(btnIniciarProceso);
+            textBox1.Enabled = false;
+            lblArchivo.Text = "Modo demo: la carga y descarga masiva están deshabilitadas.";
+            lblModoDemo.Visible = true;
+        }
+
+        private static void AplicarEstiloDeshabilitado(Button boton)
+        {
+            boton.FlatStyle = FlatStyle.Flat;
+            boton.UseVisualStyleBackColor = false;
+            boton.BackColor = Color.FromArgb(235, 235, 235);
+            boton.ForeColor = Color.FromArgb(130, 130, 130);
+            boton.FlatAppearance.BorderColor = Color.FromArgb(200, 200, 200);
+            boton.FlatAppearance.BorderSize = 1;
+            boton.Cursor = Cursors.No;
+            boton.Enabled = false;
         }
 
         private bool ConsultarReintento(
@@ -59,6 +87,9 @@ namespace F29Downloader
             object sender,
             EventArgs e)
         {
+            if (modoDemo)
+                return;
+
             OpenFileDialog dialogo =
                 new OpenFileDialog
                 {
@@ -83,6 +114,9 @@ namespace F29Downloader
     object sender,
     EventArgs e)
         {
+            if (modoDemo)
+                return;
+
             if (string.IsNullOrWhiteSpace(rutaExcel))
             {
                 MessageBox.Show(
@@ -137,25 +171,36 @@ namespace F29Downloader
             object sender,
             EventArgs e)
         {
-            using CredencialesDialog dialogo = new();
+            (string rut, string clave) = FlujoXmlService.ObtenerCredencialesPredeterminadas();
+            using CredencialesDialog dialogo = new(rut, clave);
 
             if (dialogo.ShowDialog(this) != DialogResult.OK)
                 return;
 
             download.IniciarProceso();
 
+            if (!int.TryParse(textBoxEsperaPaso.Text, out int esperaPorPaso) || esperaPorPaso < 0)
+            {
+                MessageBox.Show("Ingrese un tiempo de espera por paso válido.");
+                textBoxEsperaPaso.Focus();
+                return;
+            }
+
             Models.Contribuyente contribuyente =
                 new Models.Contribuyente
                 {
                     Rut = dialogo.Rut,
                     Clave = dialogo.Clave,
-                    Periodo = "05/2025"
+                    Periodo = dialogo.Periodo
                 };
 
             try
             {
                 flujoXmlActivo = new FlujoXmlService();
-                await flujoXmlActivo.EjecutarAsync(contribuyente, EscribirLog);
+                await flujoXmlActivo.EjecutarAsync(
+                    contribuyente,
+                    EscribirLog,
+                    TimeSpan.FromSeconds(esperaPorPaso));
                 return;
             }
             catch (FlujoXmlNoDisponibleException ex)
@@ -183,6 +228,9 @@ namespace F29Downloader
     object sender,
     EventArgs e)
         {
+            if (modoDemo)
+                return;
+
             DatabaseService db =
                 new DatabaseService();
 

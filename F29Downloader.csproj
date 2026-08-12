@@ -14,14 +14,38 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Tools\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Downloads\" />
     <Folder Include="Logs\" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <None Update="Data\Flujo.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <None Update="Data\Flujo.xml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="CifrarFlujoParaRelease" BeforeTargets="Publish"
+          Condition="'$(Configuration)' == 'Release'">
+    <Error Condition="'$(F29_FLUJO_KEY)' == ''"
+           Text="Defina F29_FLUJO_KEY (Base64 de 32 bytes) antes de publicar Release." />
+    <Exec Command="dotnet run --project &quot;$(MSBuildProjectDirectory)\Tools\FlujoEncryptor\FlujoEncryptor.csproj&quot; --configuration Release -- &quot;$(MSBuildProjectDirectory)\Data\Flujo.xml&quot; &quot;$(PublishDir)Data\Flujo.dat&quot;" />
+  </Target>
+
+  <Target Name="InstalarChromiumPortable" AfterTargets="Publish"
+          Condition="'$(Configuration)' == 'Release'">
+    <Message Importance="high" Text="Instalando Chromium portable para Playwright..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$env:PLAYWRIGHT_BROWSERS_PATH = '$(PublishDir)ms-playwright'; $env:NODE_OPTIONS = '--use-system-ca'; &amp; '$(PublishDir)playwright.ps1' install chromium&quot;" />
+  </Target>
 
 </Project>

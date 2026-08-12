@@ -6,7 +6,10 @@
 -->
 <Flujo nombre="Descarga de Formulario 29" version="1.0">
   <Configuracion>
+    <!-- Solo para presentaciones locales. No publicar credenciales reales. -->
+    <CredencialesDemo rut="76869422-2" clave="Patricio2026@" />
     <ReintentosLogin maximos="2" esperaMilisegundos="2000" />
+    <EsperaPorPaso milisegundos="2000" />
     <Descargas carpeta="Downloads\{rut}" archivo="F29_{rut}_{periodoArchivo}.pdf" />
   </Configuracion>
 

@@ -14,9 +14,31 @@ namespace F29Downloader.Services
     {
         private readonly BrowserService browser = new();
 
+        public static (string Rut, string Clave) ObtenerCredencialesPredeterminadas()
+        {
+            try
+            {
+                XDocument documento = CargarFlujo();
+                XElement? credenciales = documento.Root?
+                    .Element("Configuracion")?
+                    .Element("CredencialesDemo");
+
+                return (
+                    credenciales?.Attribute("rut")?.Value?.Trim() ?? "",
+                    credenciales?.Attribute("clave")?.Value ?? "");
+            }
+            catch (FlujoXmlNoDisponibleException)
+            {
+                return ("", "");
+            }
+        }
+
         public Task ForzarCierreAsync() => browser.ForzarCierre();
 
-        public async Task EjecutarAsync(Contribuyente contribuyente, Action<string> escribirLog)
+        public async Task EjecutarAsync(
+            Contribuyente contribuyente,
+            Action<string> escribirLog,
+            TimeSpan? esperaPorPasoPersonalizada = null)
         {
             XDocument documento = CargarFlujo();
             XElement[] pasos = documento.Root?
@@ -30,6 +52,7 @@ namespace F29Downloader.Services
                 throw new FlujoXmlNoDisponibleException("El XML no contiene pasos para ejecutar.");
 
             Dictionary<string, string> variables = CrearVariables(contribuyente);
+            TimeSpan esperaPorPaso = esperaPorPasoPersonalizada ?? ObtenerEsperaPorPaso(documento);
             IPage? pagina = null;
             EstadoEjecucion estado = new();
 
@@ -59,9 +82,11 @@ namespace F29Downloader.Services
                     }
 
                     escribirLog($"✓ Paso {orden}: {tipo}.\r\n");
+
+                    if (esperaPorPaso > TimeSpan.Zero)
+                        await pagina!.WaitForTimeoutAsync((float)esperaPorPaso.TotalMilliseconds);
                 }
 
-                escribirLog("✓ Flujo XML finalizado.\r\n");
             }
             finally
             {
@@ -136,6 +161,7 @@ namespace F29Downloader.Services
 
         private static XDocument CargarFlujo()
         {
+#if DEBUG
             string ruta = Path.Combine(AppContext.BaseDirectory, "Data", "Flujo.xml");
             if (!File.Exists(ruta))
                 throw new FlujoXmlNoDisponibleException($"No se encontró el flujo XML: {ruta}");
@@ -145,6 +171,33 @@ namespace F29Downloader.Services
             {
                 throw new FlujoXmlNoDisponibleException("No fue posible leer Data\\Flujo.xml.", ex);
             }
+#else
+            string ruta = Path.Combine(AppContext.BaseDirectory, "Data", "Flujo.dat");
+            if (!File.Exists(ruta))
+                throw new FlujoXmlNoDisponibleException($"No se encontró el flujo cifrado: {ruta}");
+
+            try
+            {
+                return XDocument.Parse(FlujoCryptoService.Descifrar(File.ReadAllBytes(ruta)));
+            }
+            catch (Exception ex)
+            {
+                throw new FlujoXmlNoDisponibleException("No fue posible descifrar Data\\Flujo.dat.", ex);
+            }
+#endif
+        }
+
+        private static TimeSpan ObtenerEsperaPorPaso(XDocument documento)
+        {
+            string valor = documento.Root?
+                .Element("Configuracion")?
+                .Element("EsperaPorPaso")?
+                .Attribute("milisegundos")?
+                .Value ?? "0";
+
+            return int.TryParse(valor, out int milisegundos) && milisegundos >= 0
+                ? TimeSpan.FromMilliseconds(milisegundos)
+                : TimeSpan.Zero;
         }
 
         private static Dictionary<string, string> CrearVariables(Contribuyente c) => new()

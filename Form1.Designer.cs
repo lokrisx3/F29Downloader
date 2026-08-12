@@ -42,6 +42,9 @@
             label = new Label();
             label4 = new Label();
             textBox1 = new TextBox();
+            lblModoDemo = new Label();
+            labelEsperaPaso = new Label();
+            textBoxEsperaPaso = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvContribuyentes).BeginInit();
             SuspendLayout();
             // 
@@ -181,12 +184,43 @@
             textBox1.Text = "10";
             textBox1.TextAlign = HorizontalAlignment.Right;
             // 
+            // lblModoDemo
+            // 
+            lblModoDemo.AutoSize = true;
+            lblModoDemo.ForeColor = Color.DarkRed;
+            lblModoDemo.Location = new Point(415, 53);
+            lblModoDemo.Name = "lblModoDemo";
+            lblModoDemo.Size = new Size(280, 15);
+            lblModoDemo.TabIndex = 19;
+            lblModoDemo.Text = "MODO DEMO — solo se habilita Probar navegador";
+            // 
+            // labelEsperaPaso
+            // 
+            labelEsperaPaso.AutoSize = true;
+            labelEsperaPaso.Location = new Point(415, 20);
+            labelEsperaPaso.Name = "labelEsperaPaso";
+            labelEsperaPaso.Size = new Size(151, 15);
+            labelEsperaPaso.TabIndex = 20;
+            labelEsperaPaso.Text = "Espera por paso (seg)";
+            // 
+            // textBoxEsperaPaso
+            // 
+            textBoxEsperaPaso.Location = new Point(572, 16);
+            textBoxEsperaPaso.Name = "textBoxEsperaPaso";
+            textBoxEsperaPaso.Size = new Size(38, 23);
+            textBoxEsperaPaso.TabIndex = 21;
+            textBoxEsperaPaso.Text = "2";
+            textBoxEsperaPaso.TextAlign = HorizontalAlignment.Right;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(735, 481);
             Controls.Add(textBox1);
+            Controls.Add(textBoxEsperaPaso);
+            Controls.Add(labelEsperaPaso);
+            Controls.Add(lblModoDemo);
             Controls.Add(label4);
             Controls.Add(label);
             Controls.Add(label2);
@@ -222,5 +256,8 @@
         private Label label;
         private Label label4;
         private TextBox textBox1;
+        private Label lblModoDemo;
+        private Label labelEsperaPaso;
+        private TextBox textBoxEsperaPaso;
     }
 }
